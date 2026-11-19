@@ -12,13 +12,30 @@ function AuthProvider({ children }) {
     return Boolean(token);
   });
 
+  const [role, setRole] = useState(() => localStorage.getItem('role'));
+
   const singout = () => {
-    localStorage.clear();
+    ['token', 'role', 'dni', 'email'].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
     setIsAuthenticated(false);
+    setRole(null);
   };
 
-  const setAuthSession = (token) => {
+  const setAuthSession = (token, userRole) => {
     localStorage.setItem('token', token);
+
+    if (userRole) {
+      localStorage.setItem('role', userRole);
+    }
+
+    if (userRole === 'ADMINISTRADOR') {
+      localStorage.removeItem('dni');
+      localStorage.removeItem('email');
+    }
+
+    setRole(userRole || null);
     setIsAuthenticated(true);
   };
 
@@ -34,25 +51,23 @@ function AuthProvider({ children }) {
     return { error: null };
   };
 
-  const singinAdmin = async (username, password) => {
-    if (
-      (username === 'admin' ||
-        username === 'admin@medportal.com' ||
-        username === 'admin@test.com') &&
-      password === 'admin123'
-    ) {
-      setAuthSession('mock-admin-token-12345');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginAdmin(username, password);
+  const singinAdmin = async (email, password) => {
+    const { data, error } = await loginAdmin(email, password);
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    if (!data?.token || data.role !== 'ADMINISTRADOR') {
+      return {
+        error: {
+          frontendErrorMessage:
+            'Respuesta de autenticación administrativa inválida',
+        },
+      };
+    }
+
+    setAuthSession(data.token, data.role);
 
     return { error: null };
   };
@@ -84,6 +99,7 @@ function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        role,
         singin,
         singinAdmin,
         singinPatient,
