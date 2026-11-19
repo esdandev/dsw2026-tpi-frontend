@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
-  withCredentials: true,
+  baseURL: '/',
 });
 
 instance.interceptors.request.use(
@@ -19,16 +18,28 @@ instance.interceptors.request.use(
 );
 
 instance.interceptors.response.use(
-  (config) => {
-    return config;
-  },
+  (response) => response,
   (error) => {
-    if (error.status === 401) {
-      if (window.location.pathname.includes('/admin/')) {
-        localStorage.clear();
-        window.location.href = '/login';
-      } else {
-        localStorage.removeItem('token');
+    const requestUrl = error.config?.url || '';
+    const isLoginRequest = /^\/?api\/auth\/(admin|patient)\/login\/?$/.test(
+      requestUrl
+    );
+
+    if (error.response?.status === 401 && !isLoginRequest) {
+      const role = localStorage.getItem('role');
+
+      const isAdmin =
+        role === 'ADMINISTRADOR' ||
+        (role !== 'PACIENTE' && window.location.pathname.startsWith('/admin'));
+
+      const loginPath = isAdmin ? '/admin/login' : '/login';
+
+      ['token', 'role', 'dni', 'email'].forEach((key) => {
+        localStorage.removeItem(key);
+      });
+
+      if (window.location.pathname !== loginPath) {
+        window.location.replace(loginPath);
       }
     }
 
