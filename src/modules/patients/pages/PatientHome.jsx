@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import useAuth from '../../auth/hook/useAuth';
 
 function PatientHome() {
   const navigate = useNavigate();
-
+  const { email, dni } = useAuth();
   // Estados de selección de filtros
   const [selectedSpecialty, setSelectedSpecialty] = useState('Cardiología');
   const [selectedDoctorId, setSelectedDoctorId] = useState('doc-1');
@@ -461,7 +462,8 @@ function PatientHome() {
                 <strong>Lugar:</strong> {currentDoctor.clinic}
               </p>
               <p>
-                <strong>Paciente:</strong> Johnathan Doe (DNI: 40.123.456)
+                <strong>Paciente:</strong> {email || 'Paciente'}
+                {dni && ` (DNI: ${dni})`}
               </p>
             </div>
 
