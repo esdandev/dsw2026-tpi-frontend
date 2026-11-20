@@ -5,7 +5,9 @@ import useAuth from '../../auth/hook/useAuth';
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { singout } = useAuth();
+  const { singout, email, role } = useAuth();
+
+  const adminInitials = email?.slice(0, 2).toUpperCase() || 'AD';
 
   const handleLogout = () => {
     singout();
@@ -163,14 +165,14 @@ function DashboardLayout() {
           {/* User Profile Info */}
           <div className="pt-3 border-t border-med-border flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-bold text-xs">
-              AD
+              {adminInitials}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-semibold text-med-text-main truncate">
-                Admin User
+                {email || 'Administrador'}
               </p>
               <p className="text-[11px] text-med-text-muted truncate">
-                Super Administrator
+                {role === 'ADMINISTRADOR' ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
           </div>
