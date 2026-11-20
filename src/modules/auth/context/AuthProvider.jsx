@@ -12,13 +12,35 @@ function AuthProvider({ children }) {
     return Boolean(token);
   });
 
+  const [role, setRole] = useState(() => localStorage.getItem('role'));
+
   const singout = () => {
-    localStorage.clear();
+    ['token', 'role', 'dni', 'email'].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
     setIsAuthenticated(false);
+    setRole(null);
   };
 
-  const setAuthSession = (token) => {
+  const setAuthSession = (token, userRole, patientData = null) => {
     localStorage.setItem('token', token);
+
+    if (userRole) {
+      localStorage.setItem('role', userRole);
+    }
+
+    if (userRole === 'ADMINISTRADOR') {
+      localStorage.removeItem('dni');
+      localStorage.removeItem('email');
+    }
+
+    if (userRole === 'PACIENTE' && patientData) {
+      localStorage.setItem('dni', String(patientData.dni));
+      localStorage.setItem('email', patientData.email);
+    }
+
+    setRole(userRole || null);
     setIsAuthenticated(true);
   };
 
@@ -34,48 +56,49 @@ function AuthProvider({ children }) {
     return { error: null };
   };
 
-  const singinAdmin = async (username, password) => {
-    if (
-      (username === 'admin' ||
-        username === 'admin@medportal.com' ||
-        username === 'admin@test.com') &&
-      password === 'admin123'
-    ) {
-      setAuthSession('mock-admin-token-12345');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginAdmin(username, password);
+  const singinAdmin = async (email, password) => {
+    const { data, error } = await loginAdmin(email, password);
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    if (!data?.token || data.role !== 'ADMINISTRADOR') {
+      return {
+        error: {
+          frontendErrorMessage:
+            'Respuesta de autenticación administrativa inválida',
+        },
+      };
+    }
+
+    setAuthSession(data.token, data.role);
 
     return { error: null };
   };
 
-  const singinPatient = async (username, password) => {
-    if (
-      (username === 'paciente' ||
-        username === 'paciente@medportal.com' ||
-        username === 'paciente@test.com') &&
-      password === 'paciente123'
-    ) {
-      setAuthSession('mock-patient-token-67890');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginPatient(username, password);
+  const singinPatient = async ({ email, dni, firstName, lastName }) => {
+    const { data, error } = await loginPatient({
+      email,
+      dni,
+      firstName,
+      lastName,
+    });
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    if (!data?.token || data.role !== 'PACIENTE') {
+      return {
+        error: {
+          frontendErrorMessage:
+            'Respuesta de autenticación del paciente inválida',
+        },
+      };
+    }
+
+    setAuthSession(data.token, data.role, { email, dni });
 
     return { error: null };
   };
@@ -84,6 +107,7 @@ function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        role,
         singin,
         singinAdmin,
         singinPatient,
