@@ -1,56 +1,60 @@
-import { instance } from '../../shared/api/axiosInstance';
+import { instance as axiosInstance } from '../../shared/api/axiosInstance';
 
-// Obtener médicos con paginación y búsqueda
-export async function getDoctors(pageSize = 10, pageIndex = 0, name = '') {
-  const { data } = await instance.get('/api/doctors', {
-    params: {
-      pageSize,
-      pageIndex,
-      name: name.trim(),
-    },
-  });
+export const doctorsService = {
+  async getAll({
+    pageIndex = 0,
+    pageSize = 10,
+    name = '',
+    specialtyId = '',
+  } = {}) {
+    const params = { pageIndex, pageSize };
 
-  return data;
-}
+    if (name?.trim()) params.name = name.trim();
 
-export async function getSpecialtiesForDoctorForm() {
-  const specialties = [];
-  const pageSize = 100;
-  let pageIndex = 0;
-  let total = 0;
+    if (specialtyId) params.specialtyId = specialtyId;
 
-  do {
-    const { data } = await instance.get('/api/specialties', {
-      params: { pageSize, pageIndex },
+    const { data } = await axiosInstance.get('/api/doctors', { params });
+
+    return data;
+  },
+
+  async getAllForSelect({ specialtyId = '' } = {}) {
+    const firstPage = await this.getAll({
+      pageIndex: 0,
+      pageSize: 100,
+      specialtyId,
     });
 
-    const currentPage = data.data || [];
+    if (firstPage.total <= firstPage.data.length) return firstPage.data;
 
-    specialties.push(...currentPage);
-    total = data.total || 0;
+    const items = [...firstPage.data];
+    let pageIndex = 1;
 
-    if (currentPage.length === 0) {
-      break;
+    while (items.length < firstPage.total) {
+      const next = await this.getAll({ pageIndex, pageSize: 100, specialtyId });
+
+      if (!next.data?.length) break;
+
+      items.push(...next.data);
+      pageIndex += 1;
     }
 
-    pageIndex += 1;
-  } while (specialties.length < total);
+    return items;
+  },
 
-  return specialties;
-}
+  async create(payload) {
+    const { data } = await axiosInstance.post('/api/doctors', payload);
 
-// Registrar un nuevo médico
-export async function createDoctor(doctor) {
-  const { data } = await instance.post('/api/doctors', {
-    name: doctor.name.trim(),
-    licenseNumber: doctor.licenseNumber.trim(),
-    specialtyId: doctor.specialtyId,
-  });
+    return data;
+  },
 
-  return data;
-}
+  async update(id, payload) {
+    const { data } = await axiosInstance.put(`/api/doctors/${id}`, payload);
 
-// Eliminar un médico
-export async function deleteDoctor(id) {
-  await instance.delete(`/api/doctors/${id}`);
-}
+    return data;
+  },
+
+  async remove(id) {
+    await axiosInstance.delete(`/api/doctors/${id}`);
+  },
+};
