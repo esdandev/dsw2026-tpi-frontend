@@ -191,10 +191,7 @@ function OverviewPage() {
           className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex flex-wrap items-center justify-between gap-3"
         >
           <span>{metricsError}</span>
-          <Button
-            variant="outline"
-            onClick={() => setRefreshKey((n) => n + 1)}
-          >
+          <Button variant="outline" onClick={() => setRefreshKey((n) => n + 1)}>
             Reintentar
           </Button>
         </div>
@@ -216,7 +213,7 @@ function OverviewPage() {
         />
         <MetricCard
           type="appointments"
-          title="Turnos confirmados para hoy"
+          title="Turnos reservados para hoy"
           caption="Hoy"
           value={loadingMetrics ? '...' : (metrics?.bookedToday ?? '—')}
         />
@@ -225,9 +222,17 @@ function OverviewPage() {
       {/* Directorio real de profesionales */}
       <Card className="p-0 overflow-hidden border-med-border">
         <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-med-border">
-          <h2 className="text-base font-bold text-med-primary-900">
-            Directorio de Profesionales Médicos
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-bold text-med-primary-900">
+              Directorio de Profesionales Médicos
+            </h2>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/admin/doctors')}
+            >
+              Ver todos
+            </Button>
+          </div>
 
           <div className="w-full sm:w-72">
             <input
@@ -246,81 +251,87 @@ function OverviewPage() {
           </div>
         </div>
 
-        <AsyncState
-          loading={loadingDoctors}
-          error={doctorsError}
-          isEmpty={doctors.length === 0}
-          onRetry={refetchDoctors}
-          emptyTitle="No hay profesionales para mostrar"
-          emptyDescription="Probá con otro nombre o registrá un médico."
-        >
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
-                  <tr>
-                    <th className="px-6 py-3.5">Nombre del Doctor</th>
-                    <th className="px-6 py-3.5">Especialidad</th>
-                    <th className="px-6 py-3.5">Estado</th>
-                    <th className="px-6 py-3.5 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-med-border-subtle">
-                  {doctors.map((doctor) => (
-                    <tr
-                      key={doctor.id}
-                      className="hover:bg-gray-50/70 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <span className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-semibold text-xs">
-                            {doctor.name?.slice(0, 2).toUpperCase()}
-                          </span>
-                          <span className="font-semibold text-med-primary-900">
-                            {doctor.name}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 text-med-text-sub">
-                        {doctor.specialty?.name || 'Sin especialidad'}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
-                          <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
-                          Activo
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(
-                              `/admin/doctors/${doctor.id}/availability`
-                            )
-                          }
-                          className="text-xs font-semibold text-med-primary-700 hover:text-med-primary-900"
-                        >
-                          Ver disponibilidad
-                        </button>
-                      </td>
+        {trimmedSearch.length > 0 && trimmedSearch.length < 3 ? (
+          <p className="p-6 text-sm text-med-text-sub">
+            Ingresá al menos 3 caracteres para buscar profesionales.
+          </p>
+        ) : (
+          <AsyncState
+            loading={loadingDoctors}
+            error={doctorsError}
+            isEmpty={doctors.length === 0}
+            onRetry={refetchDoctors}
+            emptyTitle="No hay profesionales para mostrar"
+            emptyDescription="Probá con otro nombre o registrá un médico."
+          >
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
+                    <tr>
+                      <th className="px-6 py-3.5">Nombre del Doctor</th>
+                      <th className="px-6 py-3.5">Especialidad</th>
+                      <th className="px-6 py-3.5">Estado</th>
+                      <th className="px-6 py-3.5 text-right">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-med-border-subtle">
+                    {doctors.map((doctor) => (
+                      <tr
+                        key={doctor.id}
+                        className="hover:bg-gray-50/70 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-semibold text-xs">
+                              {doctor.name?.slice(0, 2).toUpperCase()}
+                            </span>
+                            <span className="font-semibold text-med-primary-900">
+                              {doctor.name}
+                            </span>
+                          </div>
+                        </td>
 
-            <TablePagination
-              currentPage={pageIndex + 1}
-              totalPages={totalPages}
-              totalItems={total}
-              pageSize={PAGE_SIZE}
-              onPageChange={(page) => setPageIndex(page - 1)}
-            />
-          </>
-        </AsyncState>
+                        <td className="px-6 py-4 text-med-text-sub">
+                          {doctor.specialty?.name || 'Sin especialidad'}
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
+                            <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
+                            Activo
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/admin/doctors/${doctor.id}/availability`
+                              )
+                            }
+                            className="text-xs font-semibold text-med-primary-700 hover:text-med-primary-900"
+                          >
+                            Ver disponibilidad
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <TablePagination
+                currentPage={pageIndex + 1}
+                totalPages={totalPages}
+                totalItems={total}
+                pageSize={PAGE_SIZE}
+                onPageChange={(page) => setPageIndex(page - 1)}
+              />
+            </>
+          </AsyncState>
+        )}
       </Card>
     </div>
   );

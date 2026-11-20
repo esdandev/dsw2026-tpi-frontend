@@ -6,6 +6,8 @@ export const ERROR_CODE_MESSAGES = {
   SPECIALITY_NAME_CONFLICT:
     'Ya existe una especialidad registrada con ese nombre.',
   DOCTOR_LICENSE_CONFLICT: 'Ya existe un médico registrado con esa matrícula.',
+  DOCTOR_HAS_FUTURE_APPOINTMENTS:
+    'No se puede eliminar el médico porque tiene turnos futuros reservados.',
   AVAILABILITY_OVERLAP:
     'La franja horaria se superpone con otra disponibilidad existente.',
   AVAILABILITY_SLOT_CONFLICT:
@@ -44,12 +46,14 @@ const ISSUE_MESSAGES = {
   slot_inavailable: 'Este horario ya no está disponible.',
   past_date: 'No se permiten fechas u horarios pasados.',
   overlap: 'El horario se superpone con otro existente.',
+  license_already_registered: 'La matrícula ya está registrada.',
+  doctor_slot_already_exists: 'Ya existe un bloque para ese horario.',
 };
 
 function formatIssue(issue) {
   if (!issue) return 'Valor inválido.';
 
-  return ISSUE_MESSAGES[issue] || 'Verificá el valor de este campo.';
+  return ISSUE_MESSAGES[issue] || issue;
 }
 
 export function parseBackendError(error) {

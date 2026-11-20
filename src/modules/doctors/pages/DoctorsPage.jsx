@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import { doctorsService } from '../services/doctorsService';
+import { useDoctors } from '../hooks/useDoctors';
 
 const PAGE_SIZE = 10;
 
@@ -12,56 +12,13 @@ function DoctorsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [nameFilter, setNameFilter] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
-  const [doctors, setDoctors] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [searchError, setSearchError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
-  const [reloadCount, setReloadCount] = useState(0);
-
-  // Cargar médicos desde el backend
-  useEffect(() => {
-    let active = true;
-
-    const loadDoctors = async () => {
-      setLoading(true);
-      setErrorMessage('');
-
-      try {
-        const result = await doctorsService.getAll({
-          pageSize: PAGE_SIZE,
-          pageIndex,
-          name: nameFilter,
-        });
-
-        if (active) {
-          setDoctors(result.data || []);
-          setTotal(result.total || 0);
-        }
-      } catch (error) {
-        if (active) {
-          setErrorMessage(
-            error.response?.status === 403
-              ? 'Acceso denegado para consultar médicos.'
-              : 'No se pudo cargar el listado de médicos. Intentá nuevamente.'
-          );
-
-          setDoctors([]);
-          setTotal(0);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadDoctors();
-
-    return () => {
-      active = false;
-    };
-  }, [pageIndex, nameFilter, reloadCount]);
+  const { doctors, total, loading, error, removeDoctor, refetch } = useDoctors({
+    pageSize: PAGE_SIZE,
+    pageIndex,
+    name: nameFilter,
+  });
 
   // Buscar médicos por nombre
   const handleSearch = (event) => {
@@ -70,13 +27,14 @@ function DoctorsPage() {
     const normalizedName = searchInput.trim();
 
     if (normalizedName && normalizedName.length < 3) {
-      setErrorMessage('Ingresá al menos 3 caracteres para buscar por nombre.');
+      setSearchError('Ingresá al menos 3 caracteres para buscar por nombre.');
 
       return;
     }
 
     setPageIndex(0);
     setNameFilter(normalizedName);
+    setSearchError('');
   };
 
   // Eliminar médico con confirmación previa
@@ -90,33 +48,13 @@ function DoctorsPage() {
     }
 
     setDeletingId(doctor.id);
-    setErrorMessage('');
+    const result = await removeDoctor(doctor.id);
 
-    try {
-      await doctorsService.remove(doctor.id);
-
-      if (doctors.length === 1 && pageIndex > 0) {
-        setPageIndex((current) => current - 1);
-      } else {
-        setReloadCount((current) => current + 1);
-      }
-    } catch (error) {
-      const status = error.response?.status;
-
-      if (status === 404) {
-        setErrorMessage('El médico ya no existe o fue eliminado.');
-      } else if (status === 409) {
-        setErrorMessage(
-          'No se pudo eliminar el médico por un conflicto de datos.'
-        );
-      } else if (status === 403) {
-        setErrorMessage('Acceso denegado para eliminar médicos.');
-      } else {
-        setErrorMessage('No se pudo eliminar el médico. Intentá nuevamente.');
-      }
-    } finally {
-      setDeletingId(null);
+    if (result.ok && doctors.length === 1 && pageIndex > 0) {
+      setPageIndex((current) => current - 1);
     }
+
+    setDeletingId(null);
   };
 
   // Datos de paginación
@@ -160,10 +98,15 @@ function DoctorsPage() {
       </div>
 
       {/* Mensajes de error */}
-      {errorMessage && (
+      {(searchError || error) && (
         <p role="alert" className="text-sm text-red-600">
-          {errorMessage}
+          {searchError || error}
         </p>
+      )}
+      {error && (
+        <Button variant="outline" onClick={refetch}>
+          Reintentar
+        </Button>
       )}
 
       {/* Tabla de médicos */}
@@ -201,7 +144,7 @@ function DoctorsPage() {
                     colSpan={4}
                     className="px-6 py-8 text-center text-med-text-sub"
                   >
-                    {errorMessage || 'No se encontraron médicos.'}
+                    {error || 'No se encontraron médicos.'}
                   </td>
                 </tr>
               ) : (

@@ -79,8 +79,8 @@ function validateSchedule(schedule) {
         return `En ${day.label}, la hora de salida debe ser posterior a la entrada.`;
       }
 
-      if (duration < 30 || duration % 30 !== 0) {
-        return `En ${day.label}, cada franja debe tener una duración múltiplo de 30 minutos.`;
+      if (start % 30 !== 0 || end % 30 !== 0 || duration < 30) {
+        return `En ${day.label}, usá horarios cada 30 minutos (por ejemplo 08:00 u 08:30).`;
       }
 
       orderedRanges.push({ start, end });
@@ -342,6 +342,7 @@ function DoctorAvailabilityPage() {
   const { id } = useParams();
 
   const [doctor, setDoctor] = useState(null);
+  const [loadingDoctor, setLoadingDoctor] = useState(true);
   const [doctorError, setDoctorError] = useState('');
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -350,6 +351,7 @@ function DoctorAvailabilityPage() {
     availabilities,
     loading,
     error,
+    loadError,
     fieldErrors,
     refetch,
     saveAvailabilities,
@@ -359,6 +361,7 @@ function DoctorAvailabilityPage() {
     let active = true;
 
     const loadDoctor = async () => {
+      setLoadingDoctor(true);
       try {
         const doctors = await doctorsService.getAllForSelect();
 
@@ -374,6 +377,8 @@ function DoctorAvailabilityPage() {
         if (active) {
           setDoctorError('No se pudo consultar la información del médico.');
         }
+      } finally {
+        if (active) setLoadingDoctor(false);
       }
     };
 
@@ -465,7 +470,7 @@ function DoctorAvailabilityPage() {
         </div>
       )}
 
-      {loading ? (
+      {loading || loadingDoctor ? (
         <Card>
           <p className="text-sm text-med-text-sub">
             {saving
@@ -473,10 +478,15 @@ function DoctorAvailabilityPage() {
               : 'Cargando horarios configurados...'}
           </p>
         </Card>
-      ) : error && !saving ? (
+      ) : loadError ? (
         <Button variant="outline" onClick={refetch}>
           Reintentar consulta
         </Button>
+      ) : !doctor ? (
+        <p className="text-sm text-med-text-sub">
+          Seleccioná un médico válido desde el directorio para configurar sus
+          horarios.
+        </p>
       ) : (
         <AvailabilityEditor
           doctorId={id}

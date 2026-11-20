@@ -4,6 +4,7 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import { doctorsService } from '../services/doctorsService';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
+import { parseBackendError } from '../../shared/helpers/backendError';
 
 function DoctorCreatePage() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ function DoctorCreatePage() {
   const [loadingSpecialties, setLoadingSpecialties] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     let active = true;
@@ -77,6 +79,7 @@ function DoctorCreatePage() {
 
     setSaving(true);
     setErrorMessage('');
+    setFieldErrors({});
 
     try {
       await doctorsService.create({
@@ -86,24 +89,10 @@ function DoctorCreatePage() {
       });
       navigate('/admin/doctors');
     } catch (error) {
-      const status = error.response?.status;
-      const errorCode = error.response?.data?.errorCode;
+      const parsed = parseBackendError(error);
 
-      if (status === 409 && errorCode === 'DOCTOR_LICENSE_CONFLICT') {
-        setErrorMessage('Ese número de licencia médica ya está registrado.');
-      } else if (status === 409) {
-        setErrorMessage(
-          'No se pudo registrar el médico por un conflicto de datos.'
-        );
-      } else if (status === 404) {
-        setErrorMessage('La especialidad seleccionada ya no existe.');
-      } else if (status === 400) {
-        setErrorMessage('Revisá los datos ingresados.');
-      } else if (status === 403) {
-        setErrorMessage('Acceso denegado para registrar médicos.');
-      } else {
-        setErrorMessage('No se pudo registrar el médico. Intentá nuevamente.');
-      }
+      setErrorMessage(parsed.message);
+      setFieldErrors(parsed.fieldErrors);
     } finally {
       setSaving(false);
     }
@@ -141,6 +130,11 @@ function DoctorCreatePage() {
               {errorMessage}
             </p>
           )}
+          {Object.entries(fieldErrors).map(([field, message]) => (
+            <p key={field} role="alert" className="text-sm text-red-700">
+              {field}: {message}
+            </p>
+          ))}
 
           <div className="flex flex-col gap-2">
             <label
