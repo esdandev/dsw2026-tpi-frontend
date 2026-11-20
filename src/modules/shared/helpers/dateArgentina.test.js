@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'node:test'; 
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import {
   formatDateAR,
   formatTimeAR,
@@ -8,22 +9,20 @@ import {
 
 describe('dateArgentina helper', () => {
   it('convierte UTC a America/Argentina/Buenos_Aires (UTC-3)', () => {
-
     const utcIso = '2026-10-28T13:30:00Z';
-    expect(formatDateAR(utcIso)).toBe('28/10/2026');
-    expect(formatTimeAR(utcIso)).toBe('10:30');
-    expect(formatDateTimeAR(utcIso)).toContain('28/10/2026');
-    expect(formatDateTimeAR(utcIso)).toContain('10:30');
+    assert.equal(formatDateAR(utcIso), '28/10/2026');
+    assert.equal(formatTimeAR(utcIso), '10:30');
+    assert.match(formatDateTimeAR(utcIso), /28\/10\/2026.*10:30/);
   });
 
   it('ajusta el cambio de día cuando UTC es madrugada (01:30Z -> 22:30 día anterior en AR)', () => {
     const utcMidnightCross = '2026-10-28T01:30:00Z';
-    expect(formatDateAR(utcMidnightCross)).toBe('27/10/2026');
-    expect(formatTimeAR(utcMidnightCross)).toBe('22:30');
-    expect(toApiDateFilter(utcMidnightCross)).toBe('2026-10-27');
+    assert.equal(formatDateAR(utcMidnightCross), '27/10/2026');
+    assert.equal(formatTimeAR(utcMidnightCross), '22:30');
+    assert.equal(toApiDateFilter(utcMidnightCross), '2026-10-27');
   });
 
   it('preserva filtros de fecha YYYY-MM-DD', () => {
-    expect(toApiDateFilter('2026-11-05')).toBe('2026-11-05');
+    assert.equal(toApiDateFilter('2026-11-05'), '2026-11-05');
   });
 });
