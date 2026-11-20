@@ -23,6 +23,7 @@ import OverviewPage from './modules/dashboard/pages/OverviewPage';
 import DoctorsPage from './modules/doctors/pages/DoctorsPage';
 import SpecialtiesPage from './modules/specialties/pages/SpecialtiesPage';
 import AppointmentsSearchPage from './modules/appointments/pages/AppointmentsSearchPage';
+import AccessDeniedNotice from './modules/shared/components/AccessDeniedNotice';
 
 const routes = [
   // Rutas públicas
@@ -107,6 +108,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <AccessDeniedNotice />
       <RouterProvider router={router} />
     </AuthProvider>
   );
