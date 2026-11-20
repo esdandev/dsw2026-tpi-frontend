@@ -1,25 +1,22 @@
+import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import AsyncState from '../../shared/components/AsyncState';
+import { formatDateAR, formatTimeAR } from '../../shared/helpers/dateArgentina';
+import useAuth from '../../auth/hook/useAuth';
+import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 
 function AppointmentsPage() {
-  const sampleAppointments = [
-    {
-      id: 1,
-      doctor: 'Dra. María González',
-      specialty: 'Cardiología',
-      date: '2026-10-28',
-      time: '10:30 hs',
-      status: 'Confirmado',
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Lucas Fernández',
-      specialty: 'Traumatología',
-      date: '2026-11-05',
-      time: '15:00 hs',
-      status: 'Pendiente',
-    },
-  ];
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const patientDni = user?.dni || '';
+
+  const { appointments, loading, error, isEmpty, refetch, cancelAppointment } =
+    usePatientAppointments(patientDni);
+
+  const handleCancel = async (appointmentId) => {
+    await cancelAppointment(appointmentId);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -32,59 +29,77 @@ function AppointmentsPage() {
             Consulta y gestiona las citas médicas programadas.
           </p>
         </div>
-        <Button onClick={() => alert('Función de nuevo turno próximamente')}>
+        <Button onClick={() => navigate('/patient')}>
           + Solicitar Nuevo Turno
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {sampleAppointments.map((appt) => (
-          <Card
-            key={appt.id}
-            className="flex flex-col justify-between gap-4 p-6"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
-                  {appt.specialty}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                    appt.status === 'Confirmado'
-                      ? 'bg-med-active-bg text-med-active-text'
-                      : 'bg-med-leave-bg text-med-leave-text'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                  {appt.status}
-                </span>
-              </div>
-              <h3 className="text-lg font-bold text-med-primary-900">
-                {appt.doctor}
-              </h3>
-              <p className="text-sm text-med-text-sub mt-2">
-                Fecha:{' '}
-                <strong className="text-med-text-main font-semibold">
-                  {appt.date}
-                </strong>{' '}
-                a las{' '}
-                <strong className="text-med-text-main font-semibold">
-                  {appt.time}
-                </strong>
-              </p>
-            </div>
-            <div className="flex gap-2 pt-3 border-t border-med-border">
-              <Button
-                variant="outline"
-                className="w-full text-xs"
-                onClick={() => alert(`Cancelando turno ${appt.id}`)}
+      <AsyncState
+        loading={loading}
+        error={error}
+        isEmpty={isEmpty}
+        onRetry={refetch}
+        emptyTitle="No tenés turnos programados"
+        emptyDescription="Podés solicitar un nuevo turno médico desde el botón superior."
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {appointments.map((appt) => {
+            const rawDate = appt.startTime || appt.date || appt.slotDate;
+            const statusUpper = String(appt.status || '').toUpperCase();
+            const isCancelled = statusUpper.includes('CANCEL');
+
+            return (
+              <Card
+                key={appt.id}
+                className="flex flex-col justify-between gap-4 p-6"
               >
-                Cancelar Turno
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
+                      {appt.specialtyName || appt.specialty?.name || 'Consulta'}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                        isCancelled
+                          ? 'bg-med-danger-bg text-med-danger-text'
+                          : 'bg-med-active-bg text-med-active-text'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                      {appt.status || 'Confirmado'}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-med-primary-900">
+                    {appt.doctorName || appt.doctor?.name}
+                  </h3>
+                  <p className="text-sm text-med-text-sub mt-2">
+                    Fecha:{' '}
+                    <strong className="text-med-text-main font-semibold">
+                      {formatDateAR(rawDate)}
+                    </strong>{' '}
+                    a las{' '}
+                    <strong className="text-med-text-main font-semibold">
+                      {formatTimeAR(rawDate)} hs
+                    </strong>
+                  </p>
+                </div>
+
+                {!isCancelled && (
+                  <div className="flex gap-2 pt-3 border-t border-med-border">
+                    <Button
+                      variant="outline"
+                      className="w-full text-xs"
+                      onClick={() => handleCancel(appt.id)}
+                    >
+                      Cancelar Turno
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      </AsyncState>
     </div>
   );
 }
