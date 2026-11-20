@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { doctorsService } from '../services/doctorsService';
 import { parseBackendError } from '../../shared/helpers/backendError';
 
-export function useDoctors({ pageIndex = 0, pageSize = 10, name = '' } = {}) {
+export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyId = '' } = {}) {
   const [doctors, setDoctors] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -13,22 +13,21 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '' } = {}) {
     setLoading(true);
     setError(null);
     try {
-      const data = await doctorsService.getPaginated({
+      const res = await doctorsService.getAll({
         pageIndex,
         pageSize,
         name,
+        specialtyId,
       });
-
-      setDoctors(data.items || data.content || data || []);
-      setTotal(data.total ?? data.totalElements ?? 0);
+      setDoctors(res?.data || []);
+      setTotal(res?.total ?? 0);
     } catch (err) {
       const parsed = parseBackendError(err);
-
       setError(parsed.message);
     } finally {
       setLoading(false);
     }
-  }, [pageIndex, pageSize, name]);
+  }, [pageIndex, pageSize, name, specialtyId]);
 
   useEffect(() => {
     fetchDoctors();
@@ -40,14 +39,11 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '' } = {}) {
     try {
       await doctorsService.create(payload);
       await fetchDoctors();
-
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
-
       setError(parsed.message);
       setFieldErrors(parsed.fieldErrors || {});
-
       return { ok: false };
     }
   };
@@ -57,13 +53,10 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '' } = {}) {
     try {
       await doctorsService.remove(id);
       await fetchDoctors();
-
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
-
       setError(parsed.message);
-
       return { ok: false };
     }
   };
