@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import { deleteDoctor, getDoctors } from '../services/doctorsService';
+import { doctorsService } from '../services/doctorsService';
 
 const PAGE_SIZE = 10;
 
@@ -28,7 +28,11 @@ function DoctorsPage() {
       setErrorMessage('');
 
       try {
-        const result = await getDoctors(PAGE_SIZE, pageIndex, nameFilter);
+        const result = await doctorsService.getAll({
+          pageSize: PAGE_SIZE,
+          pageIndex,
+          name: nameFilter,
+        });
 
         if (active) {
           setDoctors(result.data || []);
@@ -89,7 +93,7 @@ function DoctorsPage() {
     setErrorMessage('');
 
     try {
-      await deleteDoctor(doctor.id);
+      await doctorsService.remove(doctor.id);
 
       if (doctors.length === 1 && pageIndex > 0) {
         setPageIndex((current) => current - 1);
@@ -234,6 +238,14 @@ function DoctorsPage() {
                         {deletingId === doctor.id
                           ? 'Eliminando...'
                           : 'Eliminar'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          navigate(`/admin/doctors/${doctor.id}/availability`)
+                        }
+                      >
+                        Agregar Disponibilidad Horaria
                       </Button>
                     </td>
                   </tr>
