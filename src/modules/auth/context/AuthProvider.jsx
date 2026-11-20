@@ -23,7 +23,7 @@ function AuthProvider({ children }) {
     setRole(null);
   };
 
-  const setAuthSession = (token, userRole) => {
+  const setAuthSession = (token, userRole, patientData = null) => {
     localStorage.setItem('token', token);
 
     if (userRole) {
@@ -33,6 +33,11 @@ function AuthProvider({ children }) {
     if (userRole === 'ADMINISTRADOR') {
       localStorage.removeItem('dni');
       localStorage.removeItem('email');
+    }
+
+    if (userRole === 'PACIENTE' && patientData) {
+      localStorage.setItem('dni', String(patientData.dni));
+      localStorage.setItem('email', patientData.email);
     }
 
     setRole(userRole || null);
@@ -72,25 +77,28 @@ function AuthProvider({ children }) {
     return { error: null };
   };
 
-  const singinPatient = async (username, password) => {
-    if (
-      (username === 'paciente' ||
-        username === 'paciente@medportal.com' ||
-        username === 'paciente@test.com') &&
-      password === 'paciente123'
-    ) {
-      setAuthSession('mock-patient-token-67890');
-
-      return { error: null };
-    }
-
-    const { data, error } = await loginPatient(username, password);
+  const singinPatient = async ({ email, dni, firstName, lastName }) => {
+    const { data, error } = await loginPatient({
+      email,
+      dni,
+      firstName,
+      lastName,
+    });
 
     if (error) {
       return { error };
     }
 
-    setAuthSession(data);
+    if (!data?.token || data.role !== 'PACIENTE') {
+      return {
+        error: {
+          frontendErrorMessage:
+            'Respuesta de autenticación del paciente inválida',
+        },
+      };
+    }
+
+    setAuthSession(data.token, data.role, { email, dni });
 
     return { error: null };
   };
