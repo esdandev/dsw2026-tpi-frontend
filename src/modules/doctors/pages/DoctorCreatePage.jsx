@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import {
-  createDoctor,
-  getSpecialtiesForDoctorForm,
-} from '../services/doctorsService';
+import { doctorsService } from '../services/doctorsService';
+import { specialtiesService } from '../../specialties/services/specialtiesService';
 
 function DoctorCreatePage() {
   const navigate = useNavigate();
@@ -24,7 +22,7 @@ function DoctorCreatePage() {
 
     const loadSpecialties = async () => {
       try {
-        const result = await getSpecialtiesForDoctorForm();
+        const result = await specialtiesService.getAllForSelect();
 
         if (active) {
           setSpecialties(result);
@@ -81,12 +79,11 @@ function DoctorCreatePage() {
     setErrorMessage('');
 
     try {
-      await createDoctor({
+      await doctorsService.create({
         name: cleanName,
         licenseNumber: cleanLicense,
         specialtyId,
       });
-
       navigate('/admin/doctors');
     } catch (error) {
       const status = error.response?.status;
