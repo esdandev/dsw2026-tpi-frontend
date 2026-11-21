@@ -12,38 +12,57 @@ import {
 
 // Convertir una fecha al formato YYYY-MM-DD
 function formatDateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
 }
 
 // Obtener los próximos siete días
 function getNextSevenDays(weekOffset) {
-  const firstDay = new Date();
-
-  firstDay.setHours(12, 0, 0, 0);
-  firstDay.setDate(firstDay.getDate() + weekOffset * 7);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const value = (type) =>
+    Number(parts.find((part) => part.type === type).value);
+  const firstDay = new Date(
+    Date.UTC(
+      value('year'),
+      value('month') - 1,
+      value('day') + weekOffset * 7,
+      12
+    )
+  );
 
   return Array.from({ length: 7 }, (_, index) => {
     const date = new Date(firstDay);
 
-    date.setDate(firstDay.getDate() + index);
+    date.setUTCDate(firstDay.getUTCDate() + index);
 
     return {
       key: formatDateKey(date),
-      number: date.getDate(),
-      weekday: new Intl.DateTimeFormat('es-AR', { weekday: 'short' })
+      number: date.getUTCDate(),
+      weekday: new Intl.DateTimeFormat('es-AR', {
+        weekday: 'short',
+        timeZone: 'UTC',
+      })
         .format(date)
         .replace('.', '')
         .toUpperCase(),
-      month: new Intl.DateTimeFormat('es-AR', { month: 'short' })
+      month: new Intl.DateTimeFormat('es-AR', {
+        month: 'short',
+        timeZone: 'UTC',
+      })
         .format(date)
         .toUpperCase(),
-      label: new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' }).format(
-        date
-      ),
+      label: new Intl.DateTimeFormat('es-AR', {
+        dateStyle: 'full',
+        timeZone: 'UTC',
+      }).format(date),
     };
   });
 }

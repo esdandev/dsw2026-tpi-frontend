@@ -147,6 +147,7 @@ function AppointmentsPage() {
                   Fecha:{' '}
                   <strong>
                     {new Date(appt.startTime).toLocaleString('es-AR', {
+                      timeZone: 'America/Argentina/Buenos_Aires',
                       dateStyle: 'medium',
                       timeStyle: 'short',
                     })}
