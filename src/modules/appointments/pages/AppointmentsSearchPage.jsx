@@ -3,23 +3,60 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
 import TablePagination from '../../shared/components/TablePagination';
-import { formatDateAR, formatTimeAR } from '../../shared/helpers/dateArgentina';
+import { formatDateAR, formatTimeAR, toApiDateFilter, } from '../../shared/helpers/dateArgentina';
 import { useAppointmentsSearch } from '../hooks/useAppointments';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
 
+
+const STATUS_UI = {
+  BOOKED: {
+    label: 'Confirmado',
+    badgeClass: 'bg-med-active-bg text-med-active-text',
+    dotClass: 'bg-med-active-text',
+  },
+  CANCELLED: {
+    label: 'Cancelado',
+    badgeClass: 'bg-med-danger-bg text-med-danger-text',
+    dotClass: 'bg-med-danger-text',
+  },
+  ATTENDED: {
+    label: 'Atendido',
+    badgeClass: 'bg-blue-50 text-blue-700',
+    dotClass: 'bg-blue-600',
+  },
+  NO_SHOW: {
+    label: 'Ausente',
+    badgeClass: 'bg-amber-50 text-amber-800',
+    dotClass: 'bg-amber-600',
+  },
+};
+
+function getStatusDisplay(status) {
+  const key = String(status || '').toUpperCase();
+
+  return (
+    STATUS_UI[key] || {
+      label: status || 'Confirmado',
+      badgeClass: 'bg-slate-100 text-slate-700',
+      dotClass: 'bg-slate-500',
+    }
+  );
+}
+
 function AppointmentsSearchPage() {
+  const todayAR = toApiDateFilter(new Date());
   const [dniInput, setDniInput] = useState('');
   const [specialtyInput, setSpecialtyInput] = useState('');
   const [doctorInput, setDoctorInput] = useState('');
-  const [dateInput, setDateInput] = useState('');
+  const [dateInput, setDateInput] = useState(todayAR);
 
   // Filtros aplicados que disparan la consulta
   const [appliedFilters, setAppliedFilters] = useState({
     dni: '',
     specialtyId: '',
     doctorId: '',
-    date: '',
+    date: todayAR,
     pageIndex: 0,
     pageSize: 10,
   });
@@ -55,19 +92,42 @@ function AppointmentsSearchPage() {
     };
   }, []);
 
+  const filteredDoctors = specialtyInput
+    ? doctorsOptions.filter(
+        (doc) =>
+          String(doc.specialtyId ?? doc.specialty?.id ?? '') ===
+          String(specialtyInput)
+      )
+    : doctorsOptions;
+
   const totalPages = Math.max(1, Math.ceil(total / appliedFilters.pageSize));
 
   const handleApplyFilters = (e) => {
     e.preventDefault();
     setAppliedFilters((prev) => ({
       ...prev,
-      dni: dniInput.trim(),
+      dni: dniInput.replace(/\D/g, ''),
       specialtyId: specialtyInput,
       doctorId: doctorInput,
       date: dateInput,
       pageIndex: 0,
     }));
   };
+
+  const handleClearFilters = () => {
+  setDniInput('');
+  setSpecialtyInput('');
+  setDoctorInput('');
+  setDateInput(todayAR);
+  setAppliedFilters((prev) => ({
+    ...prev,
+    dni: '',
+    specialtyId: '',
+    doctorId: '',
+    date: todayAR,
+    pageIndex: 0,
+  }));
+};
 
   const handlePageChange = (newPage) => {
     setAppliedFilters((prev) => ({
@@ -94,6 +154,15 @@ function AppointmentsSearchPage() {
           <h2 className="text-base font-bold text-med-primary-900">
             Criterios de Búsqueda
           </h2>
+          {(dniInput || specialtyInput || doctorInput || dateInput) && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-xs font-medium text-med-primary-700 hover:underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
         </div>
 
         <form
@@ -107,8 +176,9 @@ function AppointmentsSearchPage() {
             </label>
             <input
               type="text"
+              inputMode="numeric"
               value={dniInput}
-              onChange={(e) => setDniInput(e.target.value)}
+              onChange={(e) => setDniInput(e.target.value.replace(/\D/g, ''))}
               placeholder="Ej. 40123456"
               className={`w-full px-3 py-2 text-xs bg-white border rounded-lg text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 focus:ring-med-primary-600 ${
                 fieldErrors.dni
@@ -130,7 +200,10 @@ function AppointmentsSearchPage() {
             </label>
             <select
               value={specialtyInput}
-              onChange={(e) => setSpecialtyInput(e.target.value)}
+              onChange={(e) => {
+                setSpecialtyInput(e.target.value);
+                setDoctorInput('');
+              }}
               className="w-full px-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             >
               <option value="">Todas las Especialidades</option>
@@ -153,9 +226,11 @@ function AppointmentsSearchPage() {
               className="w-full px-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             >
               <option value="">Todos los Doctores</option>
-              {doctorsOptions.map((doc) => (
+              {filteredDoctors.map((doc) => (
                 <option key={doc.id} value={doc.id}>
-                  {doc.name}
+                  {doc.fullName ||
+                    doc.name ||
+                    [doc.firstName, doc.lastName].filter(Boolean).join(' ')}
                 </option>
               ))}
             </select>
@@ -223,62 +298,94 @@ function AppointmentsSearchPage() {
               </thead>
               <tbody className="divide-y divide-med-border-subtle">
                 {appointments.map((item) => {
-                  const rawDate = item.startTime || item.date || item.slotDate;
-                  const statusUpper = String(item.status || '').toUpperCase();
-                  const isCancelled = statusUpper.includes('CANCEL');
-                  const isCompleted = statusUpper.includes('COMPLET');
+                  const rawDate =
+                    item.availableTime ||
+                    item.startTime ||
+                    item.date ||
+                    item.slotDate;
+
+                  const dateLabel = formatDateAR(rawDate);
+                  const timeLabel =
+                    typeof item.startTime === 'string' &&
+                    /^\d{2}:\d{2}/.test(item.startTime) &&
+                    !item.availableTime
+                      ? item.startTime.slice(0, 5)
+                      : formatTimeAR(rawDate);
+
+                  const specialtyLabel =
+                    item.specialtyName ||
+                    item.specialty?.name ||
+                    item.doctor?.specialty?.name ||
+                    'Consulta';
+
+                  const doctorLabel =
+                    item.doctorFullName ||
+                    item.doctorName ||
+                    item.doctor?.fullName ||
+                    item.doctor?.name ||
+                    '-';
+
+                  const patientPrimary =
+                    item.patient?.fullName ||
+                    item.patientFullName ||
+                    item.patientName ||
+                    item.patient?.name ||
+                    item.patient?.email ||
+                    item.patientEmail ||
+                    'Paciente';
+
+                  const patientDni =
+                    item.patient?.dni ||
+                    item.patientDni ||
+                    item.dni ||
+                    '-';
+
+                  const rowKey = item.appointmentsId || item.id;
+const statusDisplay = getStatusDisplay(
+  item.appointmentsStatus || item.status
+);
 
                   return (
                     <tr
-                      key={item.id}
+                      key={rowKey}
                       className="hover:bg-gray-50/70 transition-colors"
                     >
                       <td className="px-6 py-4">
                         <p className="font-bold text-med-primary-900 text-sm">
-                          {formatDateAR(rawDate)}
+                          {dateLabel}
                         </p>
                         <p className="text-xs text-med-text-muted mt-0.5">
-                          {formatTimeAR(rawDate)} hs
+                          {timeLabel} hs
                         </p>
                       </td>
 
                       <td className="px-6 py-4">
                         <p className="font-semibold text-med-primary-900">
-                          {item.specialtyName ||
-                            item.specialty?.name ||
-                            'Consulta'}
+                          {specialtyLabel}
                         </p>
                         <p className="text-xs text-med-text-muted">
-                          {item.doctorName || item.doctor?.name}
+                          {doctorLabel}
                         </p>
                       </td>
 
                       <td className="px-6 py-4">
                         <p className="font-semibold text-med-text-main">
-                          {item.patientName || item.patient?.name || 'Paciente'}
+                          {patientPrimary}
                         </p>
                         <p className="text-xs text-med-text-muted mt-0.5">
-                          DNI: {item.patientDni || item.dni}
+                          DNI: {patientDni}
                         </p>
                       </td>
 
                       <td className="px-6 py-4 text-center">
-                        {isCancelled ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-danger-bg text-med-danger-text">
-                            <span className="w-1.5 h-1.5 rounded-full bg-med-danger-text" />
-                            {statusUpper}
-                          </span>
-                        ) : isCompleted ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                            {statusUpper}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
-                            <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
-                            {statusUpper || 'CONFIRMADO'}
-                          </span>
-                        )}
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusDisplay.badgeClass}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${statusDisplay.dotClass}`}
+                          />
+                          {statusDisplay.label}
+                        </span>
                       </td>
                     </tr>
                   );
