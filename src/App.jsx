@@ -80,10 +80,6 @@ const routes = [
         element: <AppointmentsSearchPage />,
       },
       {
-        path: 'patient-search',
-        element: <AppointmentsSearchPage />,
-      },
-      {
         path: 'appointments',
         element: <Navigate to="/admin/patients" replace />,
       },
