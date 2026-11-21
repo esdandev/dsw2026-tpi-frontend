@@ -222,7 +222,7 @@ function OverviewPage() {
       {/* Directorio real de profesionales */}
       <Card className="p-0 overflow-hidden border-med-border">
         <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-med-border">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-base font-bold text-med-primary-900">
               Directorio de Profesionales Médicos
             </h2>
@@ -266,7 +266,7 @@ function OverviewPage() {
           >
             <>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+                <table className="mobile-cards w-full text-left text-sm">
                   <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
                     <tr>
                       <th className="px-6 py-3.5">Nombre del Doctor</th>
@@ -281,7 +281,7 @@ function OverviewPage() {
                         key={doctor.id}
                         className="hover:bg-gray-50/70 transition-colors"
                       >
-                        <td className="px-6 py-4">
+                        <td data-label="Médico" className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <span className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-semibold text-xs">
                               {doctor.name?.slice(0, 2).toUpperCase()}
@@ -292,18 +292,24 @@ function OverviewPage() {
                           </div>
                         </td>
 
-                        <td className="px-6 py-4 text-med-text-sub">
+                        <td
+                          data-label="Especialidad"
+                          className="px-6 py-4 text-med-text-sub"
+                        >
                           {doctor.specialty?.name || 'Sin especialidad'}
                         </td>
 
-                        <td className="px-6 py-4">
+                        <td data-label="Estado" className="px-6 py-4">
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
                             <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
                             Activo
                           </span>
                         </td>
 
-                        <td className="px-6 py-4 text-right">
+                        <td
+                          data-label="Acciones"
+                          className="px-6 py-4 text-right"
+                        >
                           <button
                             type="button"
                             onClick={() =>

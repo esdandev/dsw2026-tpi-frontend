@@ -105,6 +105,12 @@ function PatientLayout() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={
+                mobileMenuOpen
+                  ? 'Cerrar menú de pacientes'
+                  : 'Abrir menú de pacientes'
+              }
+              aria-expanded={mobileMenuOpen}
               className="md:hidden p-1.5 rounded-lg border border-med-border text-med-text-sub hover:bg-gray-50"
             >
               <svg

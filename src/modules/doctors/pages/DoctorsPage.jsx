@@ -118,7 +118,7 @@ function DoctorsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="mobile-cards w-full text-left text-sm">
             <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
               <tr>
                 <th className="px-6 py-3.5">Nombre del Doctor</th>
@@ -154,24 +154,33 @@ function DoctorsPage() {
                     className="hover:bg-gray-50/70 transition-colors"
                   >
                     {/* Nombre */}
-                    <td className="px-6 py-4 font-semibold text-med-primary-900">
+                    <td
+                      data-label="Médico"
+                      className="px-6 py-4 font-semibold text-med-primary-900"
+                    >
                       {doctor.name}
                     </td>
 
                     {/* Licencia médica */}
-                    <td className="px-6 py-4 text-med-text-sub">
+                    <td
+                      data-label="Matrícula"
+                      className="px-6 py-4 text-med-text-sub"
+                    >
                       {doctor.licenseNumber}
                     </td>
 
                     {/* Especialidad */}
-                    <td className="px-6 py-4">
+                    <td data-label="Especialidad" className="px-6 py-4">
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
                         {doctor.specialty?.name || 'Sin especialidad'}
                       </span>
                     </td>
 
                     {/* Acciones */}
-                    <td className="px-6 py-4 text-right">
+                    <td
+                      data-label="Acciones"
+                      className="px-6 py-4 text-right space-y-2 sm:space-y-0"
+                    >
                       <Button
                         variant="outline"
                         className="text-xs text-red-600 hover:bg-red-50"
@@ -199,7 +208,7 @@ function DoctorsPage() {
         </div>
 
         {/* Paginación */}
-        <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex items-center justify-between text-xs text-med-text-muted">
+        <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-med-text-muted">
           <span>
             Mostrando {firstResult}–{lastResult} de {total} registros
           </span>

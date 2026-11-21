@@ -264,7 +264,7 @@ function PatientHome() {
 
       {/* 3. Selector de Disponibilidad */}
       <Card className="p-5 sm:p-6 border-med-border">
-        <div className="flex items-center justify-between pb-4 border-b border-med-border-subtle">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-med-border-subtle">
           <span className="font-bold text-sm sm:text-base text-med-primary-900">
             Horarios Disponibles (Zona Horaria Argentina)
           </span>
@@ -301,16 +301,16 @@ function PatientHome() {
             emptyTitle="Sin turnos disponibles"
             emptyDescription="El profesional seleccionado no tiene bloques horarios disponibles."
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex gap-4 overflow-x-auto snap-x pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:overflow-visible">
               {groupedSlotsByDate.map(([dateKey, slots]) => (
                 <div
                   key={dateKey}
-                  className="p-3.5 rounded-xl border border-med-border bg-white flex flex-col gap-2.5"
+                  className="w-[min(78vw,17rem)] shrink-0 snap-start sm:w-auto p-3.5 rounded-xl border border-med-border bg-white flex flex-col gap-2.5"
                 >
                   <p className="text-xs font-bold text-med-primary-900 border-b border-med-border-subtle pb-1.5">
                     {formatDateAR(dateKey) || dateKey}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {slots.map((slot) => {
                       const isSelected = selectedSlot?.id === slot.id;
 
@@ -319,7 +319,7 @@ function PatientHome() {
                           key={slot.id}
                           type="button"
                           onClick={() => setSelectedSlot(slot)}
-                          className={`py-1.5 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                          className={`min-w-0 min-h-10 px-1 text-xs font-semibold rounded-lg border transition-all ${
                             isSelected
                               ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
                               : 'bg-white border-med-border text-med-primary-900 hover:border-med-primary-600 hover:bg-med-primary-50/50'
