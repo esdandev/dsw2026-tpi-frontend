@@ -2,7 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { doctorsService } from '../services/doctorsService';
 import { parseBackendError } from '../../shared/helpers/backendError';
 
-export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyId = '' } = {}) {
+export function useDoctors({
+  pageIndex = 0,
+  pageSize = 10,
+  name = '',
+  specialtyId = '',
+} = {}) {
   const [doctors, setDoctors] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -19,10 +24,12 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
         name,
         specialtyId,
       });
+
       setDoctors(res?.data || []);
       setTotal(res?.total ?? 0);
     } catch (err) {
       const parsed = parseBackendError(err);
+
       setError(parsed.message);
     } finally {
       setLoading(false);
@@ -39,11 +46,14 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
     try {
       await doctorsService.create(payload);
       await fetchDoctors();
+
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
+
       setError(parsed.message);
       setFieldErrors(parsed.fieldErrors || {});
+
       return { ok: false };
     }
   };
@@ -53,10 +63,13 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
     try {
       await doctorsService.remove(id);
       await fetchDoctors();
+
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
+
       setError(parsed.message);
+
       return { ok: false };
     }
   };
