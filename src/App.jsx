@@ -21,8 +21,11 @@ import OverviewPage from './modules/dashboard/pages/OverviewPage';
 
 // Domain Modules (Screaming Architecture)
 import DoctorsPage from './modules/doctors/pages/DoctorsPage';
+import DoctorAvailabilityPage from './modules/doctors/pages/DoctorAvailabilityPage';
+import DoctorCreatePage from './modules/doctors/pages/DoctorCreatePage';
 import SpecialtiesPage from './modules/specialties/pages/SpecialtiesPage';
 import AppointmentsSearchPage from './modules/appointments/pages/AppointmentsSearchPage';
+import AccessDeniedNotice from './modules/shared/components/AccessDeniedNotice';
 
 const routes = [
   // Rutas públicas
@@ -77,10 +80,6 @@ const routes = [
         element: <AppointmentsSearchPage />,
       },
       {
-        path: 'patient-search',
-        element: <AppointmentsSearchPage />,
-      },
-      {
         path: 'appointments',
         element: <Navigate to="/admin/patients" replace />,
       },
@@ -91,6 +90,14 @@ const routes = [
       {
         path: 'doctors',
         element: <DoctorsPage />,
+      },
+      {
+        path: 'doctors/new',
+        element: <DoctorCreatePage />,
+      },
+      {
+        path: 'doctors/:id/availability',
+        element: <DoctorAvailabilityPage />,
       },
     ],
   },
@@ -107,6 +114,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <AccessDeniedNotice />
       <RouterProvider router={router} />
     </AuthProvider>
   );

@@ -1,15 +1,23 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { doctorsService } from '../services/doctorsService';
 import { parseBackendError } from '../../shared/helpers/backendError';
 
-export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyId = '' } = {}) {
+export function useDoctors({
+  pageIndex = 0,
+  pageSize = 10,
+  name = '',
+  specialtyId = '',
+} = {}) {
   const [doctors, setDoctors] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const requestId = useRef(0);
 
   const fetchDoctors = useCallback(async () => {
+    const currentRequest = ++requestId.current;
+
     setLoading(true);
     setError(null);
     try {
@@ -19,18 +27,30 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
         name,
         specialtyId,
       });
+
+      if (currentRequest !== requestId.current) return;
+
       setDoctors(res?.data || []);
       setTotal(res?.total ?? 0);
     } catch (err) {
       const parsed = parseBackendError(err);
+
+      if (currentRequest !== requestId.current) return;
+
+      setDoctors([]);
+      setTotal(0);
       setError(parsed.message);
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, [pageIndex, pageSize, name, specialtyId]);
 
   useEffect(() => {
     fetchDoctors();
+
+    return () => {
+      requestId.current += 1;
+    };
   }, [fetchDoctors]);
 
   const createDoctor = async (payload) => {
@@ -39,11 +59,14 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
     try {
       await doctorsService.create(payload);
       await fetchDoctors();
+
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
+
       setError(parsed.message);
       setFieldErrors(parsed.fieldErrors || {});
+
       return { ok: false };
     }
   };
@@ -53,10 +76,13 @@ export function useDoctors({ pageIndex = 0, pageSize = 10, name = '', specialtyI
     try {
       await doctorsService.remove(id);
       await fetchDoctors();
+
       return { ok: true };
     } catch (err) {
       const parsed = parseBackendError(err);
+
       setError(parsed.message);
+
       return { ok: false };
     }
   };

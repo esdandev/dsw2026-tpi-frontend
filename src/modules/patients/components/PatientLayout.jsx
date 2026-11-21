@@ -5,7 +5,9 @@ import useAuth from '../../auth/hook/useAuth';
 function PatientLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { singout } = useAuth();
+  const { singout, email } = useAuth();
+
+  const patientInitials = email?.slice(0, 2).toUpperCase() || 'PA';
 
   const handleLogout = () => {
     singout();
@@ -85,10 +87,10 @@ function PatientLayout() {
             {/* Avatar Paciente */}
             <div className="flex items-center gap-2.5 pl-2 sm:border-l sm:border-med-border">
               <div className="w-8 h-8 rounded-full bg-med-primary-100 text-med-primary-900 font-bold text-xs flex items-center justify-center border border-med-primary-200">
-                JD
+                {patientInitials}
               </div>
               <span className="hidden sm:inline-block text-xs font-semibold text-med-text-main">
-                Johnathan Doe
+                {email || 'Paciente'}
               </span>
             </div>
 
@@ -103,6 +105,12 @@ function PatientLayout() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={
+                mobileMenuOpen
+                  ? 'Cerrar menú de pacientes'
+                  : 'Abrir menú de pacientes'
+              }
+              aria-expanded={mobileMenuOpen}
               className="md:hidden p-1.5 rounded-lg border border-med-border text-med-text-sub hover:bg-gray-50"
             >
               <svg
@@ -154,7 +162,7 @@ function PatientLayout() {
             </NavLink>
             <div className="pt-2 border-t border-med-border-subtle flex items-center justify-between">
               <span className="text-xs font-medium text-med-text-sub">
-                Paciente: Johnathan Doe
+                Paciente: {email || 'Sin identificar'}
               </span>
               <button
                 onClick={handleLogout}

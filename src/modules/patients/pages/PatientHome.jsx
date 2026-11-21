@@ -6,20 +6,17 @@ import Input from '../../shared/components/Input';
 import AsyncState from '../../shared/components/AsyncState';
 import {
   formatDateAR,
-  formatDateTimeAR,
-  formatTimeAR,
   toApiDateFilter,
 } from '../../shared/helpers/dateArgentina';
 import useAuth from '../../auth/hook/useAuth';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
-import { useDoctorAvailabilities } from '../../availabilities/hooks/useAvailabilities';
+import { parseBackendError } from '../../shared/helpers/backendError';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 
 function PatientHome() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const patientDni = user?.dni || '';
+  const { dni: patientDni } = useAuth();
 
   const [specialtiesOptions, setSpecialtiesOptions] = useState([]);
   const [doctorsOptions, setDoctorsOptions] = useState([]);
@@ -30,13 +27,45 @@ function PatientHome() {
   const [reason, setReason] = useState('');
   const [confirmedModal, setConfirmedModal] = useState(false);
 
-  const {
-    availabilities,
-    loading: loadingSlots,
-    error: errorSlots,
-    isEmpty: isEmptySlots,
-    refetch: refetchSlots,
-  } = useDoctorAvailabilities(selectedDoctorId);
+  const [slots, setSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [errorSlots, setErrorSlots] = useState(null);
+  const [slotsReloadCount, setSlotsReloadCount] = useState(0);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const today = toApiDateFilter(new Date());
+  const firstDate = new Date(`${today}T12:00:00Z`);
+
+  firstDate.setUTCDate(firstDate.getUTCDate() + weekOffset * 7);
+  const fromDate = firstDate.toISOString().slice(0, 10);
+
+  firstDate.setUTCDate(firstDate.getUTCDate() + 6);
+  const toDate = firstDate.toISOString().slice(0, 10);
+  const refetchSlots = () => setSlotsReloadCount((count) => count + 1);
+
+  useEffect(() => {
+    if (!selectedDoctorId) return;
+
+    let active = true;
+
+    setLoadingSlots(true);
+    setErrorSlots(null);
+    setSlots([]);
+    doctorsService
+      .getSlots(selectedDoctorId, fromDate, toDate)
+      .then((list) => {
+        if (active) setSlots(list);
+      })
+      .catch((error) => {
+        if (active) setErrorSlots(parseBackendError(error).message);
+      })
+      .finally(() => {
+        if (active) setLoadingSlots(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedDoctorId, fromDate, toDate, slotsReloadCount]);
 
   const {
     error: bookingError,
@@ -107,11 +136,8 @@ function PatientHome() {
   const groupedSlotsByDate = useMemo(() => {
     const groups = {};
 
-    for (const item of availabilities) {
-      const dateKey =
-        toApiDateFilter(item.startTime || item.date) ||
-        item.day ||
-        'Disponible';
+    for (const item of slots) {
+      const dateKey = item.date;
 
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -121,10 +147,10 @@ function PatientHome() {
     }
 
     return Object.entries(groups);
-  }, [availabilities]);
+  }, [slots]);
 
   const handleConfirmAppointment = async () => {
-    if (!selectedDoctorId || !selectedSlot) return;
+    if (!selectedDoctorId || !selectedSlot || !patientDni) return;
 
     const res = await bookAppointment({
       doctorId: selectedDoctorId,
@@ -135,6 +161,10 @@ function PatientHome() {
 
     if (res.ok) {
       setConfirmedModal(true);
+      refetchSlots();
+    } else if (res.error?.status === 409) {
+      setSelectedSlot(null);
+      refetchSlots();
     }
   };
 
@@ -181,6 +211,8 @@ function PatientHome() {
               onChange={(e) => {
                 setSelectedDoctorId(e.target.value);
                 setSelectedSlot(null);
+                setSlots([]);
+                setWeekOffset(0);
               }}
               className="w-full px-3.5 py-2.5 text-sm bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-2 focus:ring-med-primary-600 cursor-pointer"
             >
@@ -197,6 +229,7 @@ function PatientHome() {
           <div className="md:col-span-3">
             <Button
               type="button"
+              disabled={!selectedDoctorId}
               className="w-full flex items-center justify-center gap-2 bg-med-primary-900 hover:bg-med-primary-800 text-white font-medium py-2.5 rounded-lg shadow-sm"
               onClick={refetchSlots}
             >
@@ -231,46 +264,68 @@ function PatientHome() {
 
       {/* 3. Selector de Disponibilidad */}
       <Card className="p-5 sm:p-6 border-med-border">
-        <div className="flex items-center justify-between pb-4 border-b border-med-border-subtle">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-med-border-subtle">
           <span className="font-bold text-sm sm:text-base text-med-primary-900">
             Horarios Disponibles (Zona Horaria Argentina)
           </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={weekOffset === 0}
+              onClick={() => {
+                setWeekOffset((n) => n - 1);
+                setSelectedSlot(null);
+              }}
+            >
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              disabled={weekOffset >= 3}
+              onClick={() => {
+                setWeekOffset((n) => n + 1);
+                setSelectedSlot(null);
+              }}
+            >
+              Siguiente
+            </Button>
+          </div>
         </div>
 
         <div className="pt-5">
           <AsyncState
             loading={loadingSlots}
             error={errorSlots}
-            isEmpty={isEmptySlots}
+            isEmpty={!loadingSlots && !errorSlots && slots.length === 0}
             onRetry={refetchSlots}
             emptyTitle="Sin turnos disponibles"
             emptyDescription="El profesional seleccionado no tiene bloques horarios disponibles."
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex gap-4 overflow-x-auto snap-x pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:overflow-visible">
               {groupedSlotsByDate.map(([dateKey, slots]) => (
                 <div
                   key={dateKey}
-                  className="p-3.5 rounded-xl border border-med-border bg-white flex flex-col gap-2.5"
+                  className="w-[min(78vw,17rem)] shrink-0 snap-start sm:w-auto p-3.5 rounded-xl border border-med-border bg-white flex flex-col gap-2.5"
                 >
                   <p className="text-xs font-bold text-med-primary-900 border-b border-med-border-subtle pb-1.5">
                     {formatDateAR(dateKey) || dateKey}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {slots.map((slot) => {
                       const isSelected = selectedSlot?.id === slot.id;
 
                       return (
                         <button
-                          key={`${slot.id}-${slot.day || dateKey}`}
+                          key={slot.id}
                           type="button"
                           onClick={() => setSelectedSlot(slot)}
-                          className={`py-1.5 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                          className={`min-w-0 min-h-10 px-1 text-xs font-semibold rounded-lg border transition-all ${
                             isSelected
                               ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
                               : 'bg-white border-med-border text-med-primary-900 hover:border-med-primary-600 hover:bg-med-primary-50/50'
                           }`}
                         >
-                          {formatTimeAR(slot.startTime)}
+                          {slot.startTime}
                         </button>
                       );
                     })}
@@ -285,7 +340,7 @@ function PatientHome() {
       {/* 4. Motivo de Consulta + Banner de Confirmación */}
       <Card className="p-5 sm:p-6 border-med-border">
         <Input
-          label="Motivo de la consulta (opcional)"
+          label="Motivo de la consulta"
           placeholder="Ej. Control cardiológico anual..."
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -305,7 +360,7 @@ function PatientHome() {
             </span>
             <p className="text-base sm:text-lg font-bold text-med-primary-900 mt-0.5">
               {selectedSlot
-                ? `${formatDateTimeAR(selectedSlot.startTime)} HS`
+                ? `${formatDateAR(selectedSlot.date)} ${selectedSlot.startTime} HS`
                 : 'Seleccioná un horario disponible'}
             </p>
             <p className="text-xs text-med-text-sub mt-0.5">
@@ -316,7 +371,13 @@ function PatientHome() {
 
           <Button
             type="button"
-            disabled={!selectedSlot || !currentDoctor}
+            disabled={
+              !selectedSlot ||
+              !currentDoctor ||
+              !patientDni ||
+              reason.trim().length < 5 ||
+              reason.trim().length > 300
+            }
             onClick={handleConfirmAppointment}
             className="flex items-center justify-center gap-2 bg-med-primary-900 hover:bg-med-primary-800 disabled:opacity-50 text-white font-medium py-3 px-6 rounded-xl shadow-md text-sm shrink-0"
           >
@@ -342,7 +403,7 @@ function PatientHome() {
               </strong>{' '}
               ha sido reservado para el{' '}
               <strong className="text-med-text-main">
-                {formatDateTimeAR(selectedSlot.startTime)} hs
+                {formatDateAR(selectedSlot.date)} {selectedSlot.startTime} hs
               </strong>
               .
             </p>

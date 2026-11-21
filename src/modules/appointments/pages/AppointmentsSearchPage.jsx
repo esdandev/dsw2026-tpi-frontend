@@ -212,7 +212,7 @@ function AppointmentsSearchPage() {
           emptyDescription="Probá ajustando los filtros de búsqueda."
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="mobile-cards w-full text-left text-sm">
               <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
                 <tr>
                   <th className="px-6 py-3.5">Fecha y Hora (AR)</th>
@@ -233,7 +233,7 @@ function AppointmentsSearchPage() {
                       key={item.id}
                       className="hover:bg-gray-50/70 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td data-label="Fecha y hora" className="px-6 py-4">
                         <p className="font-bold text-med-primary-900 text-sm">
                           {formatDateAR(rawDate)}
                         </p>
@@ -242,7 +242,10 @@ function AppointmentsSearchPage() {
                         </p>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td
+                        data-label="Especialidad y médico"
+                        className="px-6 py-4"
+                      >
                         <p className="font-semibold text-med-primary-900">
                           {item.specialtyName ||
                             item.specialty?.name ||
@@ -253,7 +256,7 @@ function AppointmentsSearchPage() {
                         </p>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td data-label="Paciente" className="px-6 py-4">
                         <p className="font-semibold text-med-text-main">
                           {item.patientName || item.patient?.name || 'Paciente'}
                         </p>
@@ -262,7 +265,7 @@ function AppointmentsSearchPage() {
                         </p>
                       </td>
 
-                      <td className="px-6 py-4 text-center">
+                      <td data-label="Estado" className="px-6 py-4 text-center">
                         {isCancelled ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-danger-bg text-med-danger-text">
                             <span className="w-1.5 h-1.5 rounded-full bg-med-danger-text" />

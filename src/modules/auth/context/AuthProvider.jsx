@@ -1,5 +1,4 @@
 import { createContext, useState } from 'react';
-import { login } from '../services/login';
 import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
 
@@ -13,6 +12,8 @@ function AuthProvider({ children }) {
   });
 
   const [role, setRole] = useState(() => localStorage.getItem('role'));
+  const [email, setEmail] = useState(() => localStorage.getItem('email'));
+  const [dni, setDni] = useState(() => localStorage.getItem('dni'));
 
   const singout = () => {
     ['token', 'role', 'dni', 'email'].forEach((key) => {
@@ -21,39 +22,40 @@ function AuthProvider({ children }) {
 
     setIsAuthenticated(false);
     setRole(null);
+    setEmail(null);
+    setDni(null);
   };
 
-  const setAuthSession = (token, userRole, patientData = null) => {
+  const setAuthSession = (token, userRole, userData = null) => {
     localStorage.setItem('token', token);
 
     if (userRole) {
       localStorage.setItem('role', userRole);
     }
 
-    if (userRole === 'ADMINISTRADOR') {
-      localStorage.removeItem('dni');
+    const sessionEmail = userData?.email?.trim() || null;
+
+    const sessionDni =
+      userRole === 'PACIENTE' && userData?.dni != null
+        ? String(userData.dni)
+        : null;
+
+    if (sessionEmail) {
+      localStorage.setItem('email', sessionEmail);
+    } else {
       localStorage.removeItem('email');
     }
 
-    if (userRole === 'PACIENTE' && patientData) {
-      localStorage.setItem('dni', String(patientData.dni));
-      localStorage.setItem('email', patientData.email);
+    if (sessionDni) {
+      localStorage.setItem('dni', sessionDni);
+    } else {
+      localStorage.removeItem('dni');
     }
 
     setRole(userRole || null);
+    setEmail(sessionEmail);
+    setDni(sessionDni);
     setIsAuthenticated(true);
-  };
-
-  const singin = async (username, password) => {
-    const { data, error } = await login(username, password);
-
-    if (error) {
-      return { error };
-    }
-
-    setAuthSession(data);
-
-    return { error: null };
   };
 
   const singinAdmin = async (email, password) => {
@@ -72,7 +74,7 @@ function AuthProvider({ children }) {
       };
     }
 
-    setAuthSession(data.token, data.role);
+    setAuthSession(data.token, data.role, { email });
 
     return { error: null };
   };
@@ -108,7 +110,8 @@ function AuthProvider({ children }) {
       value={{
         isAuthenticated,
         role,
-        singin,
+        email,
+        dni,
         singinAdmin,
         singinPatient,
         singout,
