@@ -35,13 +35,23 @@ export const appointmentsService = {
     return Array.isArray(data) ? data : (data?.data ?? []);
   },
 
-  async book({ doctorId, availabilitySlotId, patientDni, reason }) {
+  async book(bookingInput) {
+    const cleanDni = Number(
+      String(bookingInput.patientDni ?? bookingInput.patient?.dni ?? '').replace(
+        /\D/g,
+        ''
+      )
+    );
+
     const payload = {
-      doctorId,
-      availabilitySlotId,
-      patient: { dni: Number(patientDni) },
-      reason: reason.trim(),
+      doctorId: bookingInput.doctorId,
+      availabilitySlotId: bookingInput.availabilitySlotId,
+      patient: {
+        dni: cleanDni,
+      },
+      ...(bookingInput.reason ? { reason: bookingInput.reason } : {}),
     };
+
     const { data } = await axiosInstance.post('/api/appointments', payload);
 
     return data;

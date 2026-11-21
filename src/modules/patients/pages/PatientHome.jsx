@@ -72,11 +72,14 @@ function getDoctorInitials(fullName) {
 function PatientHome() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const patientDni = user?.dni ||
+    localStorage.getItem('dni') ||
+    '';
   const {
     bookAppointment,
     error: bookingError,
     fieldErrors,
-  } = usePatientAppointments(user?.dni);
+  } = usePatientAppointments(patientDni);
 
   // 1. Especialidades y médicos reales
   const [specialties, setSpecialties] = useState([]);
@@ -198,11 +201,24 @@ function PatientHome() {
     (doc) => String(doc.id) === String(selectedDoctorId)
   );
 
-  const selectedSlotStart =
+   const selectedSlotStart =
     selectedSlot?.startTime ||
     selectedSlot?.startAt ||
     selectedSlot?.dateTime ||
     selectedSlot?.start;
+
+const selectedSlotDateLabel = selectedSlot?.date
+  ? formatDateAR(selectedSlot.date)
+  : formatDateAR(selectedSlotStart);
+
+const selectedSlotTimeLabel =
+  typeof selectedSlot?.startTime === 'string' &&
+  /^\d{2}:\d{2}/.test(selectedSlot.startTime)
+    ? selectedSlot.startTime.slice(0, 5)
+    : formatTimeAR(selectedSlotStart);
+
+
+ 
 
   const handleConfirmAppointment = async () => {
     setLocalError('');
@@ -213,7 +229,11 @@ function PatientHome() {
 
       return;
     }
-
+    const cleanDni = String(patientDni).replace(/\D/g, '');
+     if (cleanDni.length < 7 || cleanDni.length > 10) {
+     setLocalError('Tu sesión no tiene un DNI de paciente válido (7 a 10 dígitos). Iniciá sesión como paciente.');
+     return;
+    }
     const trimmedReason = reason.trim();
 
     if (trimmedReason.length < 5) {
@@ -229,9 +249,9 @@ function PatientHome() {
       selectedSlot.availabilitySlotId ?? selectedSlot.id;
 
     const res = await bookAppointment({
-      doctorId: Number(selectedDoctorId),
+      doctorId: selectedDoctorId,
       availabilitySlotId,
-      patientDni: user?.dni,
+      patientDni,
       reason: trimmedReason,
     });
 
@@ -432,11 +452,11 @@ function PatientHome() {
               <span>
                 Turno seleccionado:{' '}
                 <strong className="text-med-primary-900">
-                  {formatDateAR(selectedSlotStart)}
+                  {selectedSlotDateLabel}
                 </strong>{' '}
                 a las{' '}
                 <strong className="text-med-primary-900">
-                  {formatTimeAR(selectedSlotStart)} hs
+                  {selectedSlotTimeLabel} hs
                 </strong>
               </span>
             ) : (
