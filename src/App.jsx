@@ -25,6 +25,7 @@ import DoctorAvailabilityPage from './modules/doctors/pages/DoctorAvailabilityPa
 import DoctorCreatePage from './modules/doctors/pages/DoctorCreatePage';
 import SpecialtiesPage from './modules/specialties/pages/SpecialtiesPage';
 import AppointmentsSearchPage from './modules/appointments/pages/AppointmentsSearchPage';
+import AccessDeniedNotice from './modules/shared/components/AccessDeniedNotice';
 
 const routes = [
   // Rutas públicas
@@ -117,6 +118,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <AccessDeniedNotice />
       <RouterProvider router={router} />
     </AuthProvider>
   );

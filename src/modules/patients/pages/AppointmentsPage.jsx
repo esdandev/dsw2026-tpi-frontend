@@ -8,14 +8,15 @@ import { usePatientAppointments } from '../../appointments/hooks/useAppointments
 
 function AppointmentsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const patientDni = user?.dni || '';
+  const { dni: patientDni } = useAuth();
 
   const { appointments, loading, error, isEmpty, refetch, cancelAppointment } =
     usePatientAppointments(patientDni);
 
   const handleCancel = async (appointmentId) => {
-    await cancelAppointment(appointmentId);
+    if (window.confirm('¿Querés cancelar este turno?')) {
+      await cancelAppointment(appointmentId);
+    }
   };
 
   return (
@@ -29,9 +30,7 @@ function AppointmentsPage() {
             Consulta y gestiona las citas médicas programadas.
           </p>
         </div>
-        <Button onClick={() => navigate('/patient')}>
-          + Solicitar Nuevo Turno
-        </Button>
+        <Button onClick={() => navigate('/')}>+ Solicitar Nuevo Turno</Button>
       </div>
 
       <AsyncState
