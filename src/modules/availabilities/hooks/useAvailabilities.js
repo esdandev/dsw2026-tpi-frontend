@@ -68,3 +68,44 @@ export function useDoctorAvailabilities(doctorId) {
     saveAvailabilities,
   };
 }
+export function useDoctorSlots({ doctorId, from, to }) {
+  const [slots, setSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchSlots = useCallback(async () => {
+    if (!doctorId || !from || !to) {
+      setSlots([]);
+      setLoading(false);
+      setError(null);
+
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const list = await availabilitiesService.getSlots({ doctorId, from, to });
+
+      setSlots(list);
+    } catch (err) {
+      const parsed = parseBackendError(err);
+
+      setError(parsed.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [doctorId, from, to]);
+
+  useEffect(() => {
+    fetchSlots();
+  }, [fetchSlots]);
+
+  return {
+    slots,
+    loading,
+    error,
+    refetch: fetchSlots,
+  };
+}
