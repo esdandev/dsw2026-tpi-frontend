@@ -13,6 +13,8 @@ import {
   readSession,
 } from '../../auth/services/sessionStorage';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
+import StatusPill from '../../shared/components/StatusPill';
+import { getAppointmentStatusDisplay } from '../../shared/helpers/appointmentStatus';
 
 function getDoctorDisplayName(appt) {
   const doc = appt.doctor;
@@ -24,20 +26,6 @@ function getDoctorDisplayName(appt) {
     [doc?.firstName, doc?.lastName].filter(Boolean).join(' ') ||
     'Profesional asignado'
   );
-}
-
-function mapAppointmentStatus(status) {
-  const normalized = String(status || '').toUpperCase();
-
-  if (normalized === 'BOOKED') return 'Confirmado';
-
-  if (normalized === 'CANCELLED') return 'Cancelado';
-
-  if (normalized === 'ATTENDED') return 'Atendido';
-
-  if (normalized === 'NO_SHOW') return 'Ausente';
-
-  return status || 'Confirmado';
 }
 
 function AppointmentsPage() {
@@ -123,9 +111,9 @@ function AppointmentsPage() {
             const specialtyName =
               appt.specialtyName || appt.specialty?.name || '';
             const rawStatus = appt.status || appt.appointmentsStatus;
-            const statusUpper = String(rawStatus || '').toUpperCase();
-            const isCancelled = statusUpper.includes('CANCEL');
-            const statusLabel = mapAppointmentStatus(rawStatus);
+            const statusDisplay = getAppointmentStatusDisplay(rawStatus);
+            const isCancelled =
+              String(rawStatus || '').toUpperCase() === 'CANCELLED';
             const isCancelling = cancellingId === apptId;
 
             return (
@@ -143,16 +131,11 @@ function AppointmentsPage() {
                       <span />
                     )}
 
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                        isCancelled
-                          ? 'bg-med-danger-bg text-med-danger-text'
-                          : 'bg-med-active-bg text-med-active-text'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {statusLabel}
-                    </span>
+                    <StatusPill
+                      label={statusDisplay.label}
+                      badgeClass={statusDisplay.badgeClass}
+                      dotClass={statusDisplay.dotClass}
+                    />
                   </div>
 
                   <h3 className="text-lg font-bold text-med-primary-900">

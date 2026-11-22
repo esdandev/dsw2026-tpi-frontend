@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import StatusPill from '../../shared/components/StatusPill';
 import AsyncState from '../../shared/components/AsyncState';
 import TablePagination from '../../shared/components/TablePagination';
 import { parseBackendError } from '../../shared/helpers/backendError';
@@ -300,10 +301,11 @@ function OverviewPage() {
                         </td>
 
                         <td data-label="Estado" className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
-                            <span className="w-1.5 h-1.5 rounded-full bg-med-active-text" />
-                            Activo
-                          </span>
+                          <StatusPill
+                            label="Activo"
+                            badgeClass="bg-med-active-bg text-med-active-text"
+                            dotClass="bg-med-active-text"
+                          />
                         </td>
 
                         <td
