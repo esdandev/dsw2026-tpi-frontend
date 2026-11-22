@@ -2,198 +2,311 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import Input from '../../shared/components/Input';
-import AsyncState from '../../shared/components/AsyncState';
-import {
-  formatDateAR,
-  toApiDateFilter,
-} from '../../shared/helpers/dateArgentina';
 import useAuth from '../../auth/hook/useAuth';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
-import { parseBackendError } from '../../shared/helpers/backendError';
+import { useDoctorSlots } from '../../availabilities/hooks/useAvailabilities';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
+import {
+  ARGENTINA_TIMEZONE,
+  formatDateAR,
+  formatTimeAR,
+  toApiDateFilter,
+} from '../../shared/helpers/dateArgentina';
+import SlotSelector from '../components/SlotSelector';
+
+function getCurrentMondayAR() {
+  const todayStr = toApiDateFilter(new Date());
+  const [y, m, d] = todayStr.split('-').map(Number);
+  const utcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: ARGENTINA_TIMEZONE,
+    weekday: 'short',
+  }).format(utcNoon);
+
+  const offsetMap = {
+    Mon: 0,
+    Tue: -1,
+    Wed: -2,
+    Thu: -3,
+    Fri: -4,
+    Sat: 2,
+    Sun: 1,
+  };
+
+  const diff = offsetMap[weekday] ?? 0;
+  const mondayUtc = new Date(Date.UTC(y, m - 1, d + diff, 12, 0, 0));
+
+  return toApiDateFilter(mondayUtc);
+}
+
+function addDays(yyyyMmDd, days) {
+  const [y, m, d] = yyyyMmDd.split('-').map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+
+  return toApiDateFilter(utc);
+}
+
+function getDoctorName(doc) {
+  if (!doc) return '';
+
+  return (
+    doc.fullName ||
+    doc.name ||
+    [doc.firstName, doc.lastName].filter(Boolean).join(' ') ||
+    [doc.user?.firstName, doc.user?.lastName].filter(Boolean).join(' ') ||
+    `Médico #${doc.id}`
+  );
+}
+
+function getDoctorInitials(fullName) {
+  const clean = fullName.replace(/^dra?\.\s*/i, '').trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+
+  return clean.slice(0, 2).toUpperCase() || 'DR';
+}
 
 function PatientHome() {
   const navigate = useNavigate();
-  const { dni: patientDni } = useAuth();
-
-  const [specialtiesOptions, setSpecialtiesOptions] = useState([]);
-  const [doctorsOptions, setDoctorsOptions] = useState([]);
-
-  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState('');
-  const [selectedDoctorId, setSelectedDoctorId] = useState('');
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [reason, setReason] = useState('');
-  const [confirmedModal, setConfirmedModal] = useState(false);
-
-  const [slots, setSlots] = useState([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [errorSlots, setErrorSlots] = useState(null);
-  const [slotsReloadCount, setSlotsReloadCount] = useState(0);
-  const [weekOffset, setWeekOffset] = useState(0);
-  const today = toApiDateFilter(new Date());
-  const firstDate = new Date(`${today}T12:00:00Z`);
-
-  firstDate.setUTCDate(firstDate.getUTCDate() + weekOffset * 7);
-  const fromDate = firstDate.toISOString().slice(0, 10);
-
-  firstDate.setUTCDate(firstDate.getUTCDate() + 6);
-  const toDate = firstDate.toISOString().slice(0, 10);
-  const refetchSlots = () => setSlotsReloadCount((count) => count + 1);
-
-  useEffect(() => {
-    if (!selectedDoctorId) return;
-
-    let active = true;
-
-    setLoadingSlots(true);
-    setErrorSlots(null);
-    setSlots([]);
-    doctorsService
-      .getSlots(selectedDoctorId, fromDate, toDate)
-      .then((list) => {
-        if (active) setSlots(list);
-      })
-      .catch((error) => {
-        if (active) setErrorSlots(parseBackendError(error).message);
-      })
-      .finally(() => {
-        if (active) setLoadingSlots(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedDoctorId, fromDate, toDate, slotsReloadCount]);
+  const { dni, user } = useAuth();
+  const patientDni = dni || user?.dni || localStorage.getItem('dni') || '';
 
   const {
+    bookAppointment,
     error: bookingError,
     fieldErrors,
-    bookAppointment,
   } = usePatientAppointments(patientDni);
 
+  // 1. Especialidades y médicos reales
+  const [specialties, setSpecialties] = useState([]);
+  const [loadingSpecialties, setLoadingSpecialties] = useState(true);
+  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState('');
+
+  const [doctors, setDoctors] = useState([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
+
+  // 2. Navegación semanal (máx. 31 días desde hoy)
+  const baseMonday = useMemo(() => getCurrentMondayAR(), []);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const weekStart = useMemo(
+    () => addDays(baseMonday, weekOffset * 7),
+    [baseMonday, weekOffset]
+  );
+  const weekEnd = useMemo(() => addDays(weekStart, 4), [weekStart]);
+
+  // 3. Slot seleccionado, motivo y estado de reserva
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [localError, setLocalError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Cargar especialidades al iniciar
   useEffect(() => {
-    let isMounted = true;
+    let active = true;
 
-    specialtiesService
-      .getAllForSelect()
-      .then((list) => {
-        if (!isMounted) return;
+    async function loadSpecialties() {
+      setLoadingSpecialties(true);
+      try {
+        const list = await specialtiesService.getAllForSelect();
 
-        setSpecialtiesOptions(list);
+        if (!active) return;
+
+        setSpecialties(list);
 
         if (list.length > 0) {
           setSelectedSpecialtyId(String(list[0].id));
         }
-      })
-      .catch(() => {
-        if (isMounted) setSpecialtiesOptions([]);
-      });
+      } catch {
+        if (active) setSpecialties([]);
+      } finally {
+        if (active) setLoadingSpecialties(false);
+      }
+    }
+
+    loadSpecialties();
 
     return () => {
-      isMounted = false;
+      active = false;
     };
   }, []);
 
+  // Cargar médicos al cambiar especialidad
   useEffect(() => {
-    if (!selectedSpecialtyId) return;
+    let active = true;
 
-    let isMounted = true;
+    async function loadDoctors() {
+      if (!selectedSpecialtyId) {
+        setDoctors([]);
+        setSelectedDoctorId('');
 
-    doctorsService
-      .getAllForSelect({ specialtyId: selectedSpecialtyId })
-      .then((list) => {
-        if (!isMounted) return;
+        return;
+      }
 
-        setDoctorsOptions(list);
-        const firstId = list.length > 0 ? String(list[0].id) : '';
+      setLoadingDoctors(true);
+      setSelectedDoctorId('');
+      setSelectedSlot(null);
 
-        setSelectedDoctorId(firstId);
-        setSelectedSlot(null);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setDoctorsOptions([]);
-          setSelectedDoctorId('');
+      try {
+        const list = await doctorsService.getAllForSelect({
+          specialtyId: selectedSpecialtyId,
+        });
+
+        if (!active) return;
+
+        const filtered = list.filter(
+          (doc) =>
+            String(doc.specialtyId ?? doc.specialty?.id ?? '') ===
+            String(selectedSpecialtyId)
+        );
+
+        setDoctors(filtered);
+
+        if (filtered.length > 0) {
+          setSelectedDoctorId(String(filtered[0].id));
         }
-      });
+      } catch {
+        if (active) setDoctors([]);
+      } finally {
+        if (active) setLoadingDoctors(false);
+      }
+    }
+
+    loadDoctors();
 
     return () => {
-      isMounted = false;
+      active = false;
     };
   }, [selectedSpecialtyId]);
 
-  const currentDoctor = useMemo(
-    () =>
-      doctorsOptions.find(
-        (doc) => String(doc.id) === String(selectedDoctorId)
-      ) || null,
-    [doctorsOptions, selectedDoctorId]
+  // Cargar slots reales de la semana
+  const {
+    slots,
+    loading: loadingSlots,
+    error: slotsError,
+    refetch: refetchSlots,
+  } = useDoctorSlots({
+    doctorId: selectedDoctorId,
+    from: weekStart,
+    to: weekEnd,
+  });
+
+  const selectedDoctor = doctors.find(
+    (doc) => String(doc.id) === String(selectedDoctorId)
   );
 
-  // Agrupa los slots disponibles por fecha Argentina (YYYY-MM-DD)
-  const groupedSlotsByDate = useMemo(() => {
-    const groups = {};
+  const selectedSlotStart =
+    selectedSlot?.startTime ||
+    selectedSlot?.startAt ||
+    selectedSlot?.dateTime ||
+    selectedSlot?.start;
 
-    for (const item of slots) {
-      const dateKey = item.date;
+  const selectedSlotDateLabel = selectedSlot?.date
+    ? formatDateAR(selectedSlot.date)
+    : formatDateAR(selectedSlotStart);
 
-      if (!groups[dateKey]) {
-        groups[dateKey] = [];
-      }
-
-      groups[dateKey].push(item);
-    }
-
-    return Object.entries(groups);
-  }, [slots]);
+  const selectedSlotTimeLabel =
+    typeof selectedSlot?.startTime === 'string' &&
+    /^\d{2}:\d{2}/.test(selectedSlot.startTime)
+      ? selectedSlot.startTime.slice(0, 5)
+      : formatTimeAR(selectedSlotStart);
 
   const handleConfirmAppointment = async () => {
-    if (!selectedDoctorId || !selectedSlot || !patientDni) return;
+    setLocalError('');
+    setSuccessMessage('');
+
+    if (!selectedDoctorId || !selectedSlot) {
+      setLocalError('Seleccioná un profesional y un horario disponible.');
+
+      return;
+    }
+
+    const cleanDni = String(patientDni).replace(/\D/g, '');
+    if (cleanDni.length < 7 || cleanDni.length > 10) {
+      setLocalError(
+        'Tu sesión no tiene un DNI de paciente válido (7 a 10 dígitos). Iniciá sesión como paciente.'
+      );
+
+      return;
+    }
+
+    const trimmedReason = reason.trim();
+
+    if (trimmedReason.length < 5 || trimmedReason.length > 300) {
+      setReasonError(
+        'El motivo de consulta debe tener entre 5 y 300 caracteres.'
+      );
+
+      return;
+    }
+
+    setReasonError('');
+    setSubmitting(true);
+
+    const availabilitySlotId =
+      selectedSlot.availabilitySlotId ?? selectedSlot.id;
 
     const res = await bookAppointment({
       doctorId: selectedDoctorId,
-      availabilitySlotId: selectedSlot.id,
+      availabilitySlotId,
       patientDni,
-      reason,
+      reason: trimmedReason,
     });
 
+    setSubmitting(false);
+
     if (res.ok) {
-      setConfirmedModal(true);
-      refetchSlots();
-    } else if (res.error?.status === 409) {
+      setSuccessMessage('Turno reservado correctamente.');
       setSelectedSlot(null);
-      refetchSlots();
+      setReason('');
+      await refetchSlots();
+    } else {
+      setSelectedSlot(null);
+      await refetchSlots();
     }
   };
 
+  const displayError = localError || bookingError;
+
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
-      {/* 1. Card Superior: Selector de Especialidad y Doctor */}
+      {/* 1. Selector de Especialidad y Médico */}
       <Card className="p-6 sm:p-7">
         <div className="mb-5">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-med-primary-900">
             Reservar Turno Médico
           </h1>
           <p className="text-xs sm:text-sm text-med-text-sub mt-1">
-            Seleccione la especialidad y el profesional para continuar.
+            Seleccione la especialidad, el profesional y un horario disponible.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-          {/* Especialidad */}
-          <div className="md:col-span-5 flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-sub">
-              Seleccionar Especialidad
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-med-text-main">
+              Especialidad Médica
             </label>
             <select
               value={selectedSpecialtyId}
-              onChange={(e) => setSelectedSpecialtyId(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-2 focus:ring-med-primary-600 cursor-pointer"
+              disabled={loadingSpecialties}
+              onChange={(e) => {
+                setSelectedSpecialtyId(e.target.value);
+                setSuccessMessage('');
+                setLocalError('');
+              }}
+              className="w-full rounded-lg border border-med-border bg-white px-3 py-2.5 text-sm text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             >
-              <option value="">Seleccione especialidad...</option>
-              {specialtiesOptions.map((spec) => (
+              {loadingSpecialties && <option value="">Cargando...</option>}
+              {!loadingSpecialties && specialties.length === 0 && (
+                <option value="">No hay especialidades disponibles</option>
+              )}
+              {specialties.map((spec) => (
                 <option key={spec.id} value={spec.id}>
                   {spec.name}
                 </option>
@@ -201,238 +314,170 @@ function PatientHome() {
             </select>
           </div>
 
-          {/* Doctor */}
-          <div className="md:col-span-4 flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-sub">
-              Seleccionar Doctor
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-med-text-main">
+              Profesional
             </label>
             <select
               value={selectedDoctorId}
+              disabled={loadingDoctors || doctors.length === 0}
               onChange={(e) => {
                 setSelectedDoctorId(e.target.value);
                 setSelectedSlot(null);
-                setSlots([]);
-                setWeekOffset(0);
+                setSuccessMessage('');
+                setLocalError('');
               }}
-              className="w-full px-3.5 py-2.5 text-sm bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-2 focus:ring-med-primary-600 cursor-pointer"
+              className="w-full rounded-lg border border-med-border bg-white px-3 py-2.5 text-sm text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             >
-              <option value="">Seleccione profesional...</option>
-              {doctorsOptions.map((doc) => (
+              {loadingDoctors && <option value="">Cargando médicos...</option>}
+              {!loadingDoctors && doctors.length === 0 && (
+                <option value="">Sin médicos para esta especialidad</option>
+              )}
+              {doctors.map((doc) => (
                 <option key={doc.id} value={doc.id}>
-                  {doc.name}
+                  {getDoctorName(doc)}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Botón Refrescar Disponibilidad */}
-          <div className="md:col-span-3">
-            <Button
-              type="button"
-              disabled={!selectedDoctorId}
-              className="w-full flex items-center justify-center gap-2 bg-med-primary-900 hover:bg-med-primary-800 text-white font-medium py-2.5 rounded-lg shadow-sm"
-              onClick={refetchSlots}
-            >
-              <span>Buscar Disponibilidad</span>
-            </Button>
-          </div>
         </div>
+
+        {selectedDoctor && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-med-border bg-med-primary-50/40 p-3.5">
+            <div className="w-10 h-10 rounded-full bg-med-primary-900 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {getDoctorInitials(getDoctorName(selectedDoctor))}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-med-primary-900">
+                {getDoctorName(selectedDoctor)}
+              </p>
+              <p className="text-xs text-med-text-sub">
+                {selectedDoctor.specialty?.name ||
+                  specialties.find(
+                    (s) => String(s.id) === String(selectedSpecialtyId)
+                  )?.name}
+                {selectedDoctor.licenseNumber
+                  ? ` · Matrícula ${selectedDoctor.licenseNumber}`
+                  : ''}
+              </p>
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* 2. Card de Información del Doctor Seleccionado */}
-      {currentDoctor && (
-        <Card className="p-5 sm:p-6 flex items-center gap-4 border-med-border">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-med-primary-100 text-med-primary-700 font-bold text-lg flex items-center justify-center border border-med-primary-200 shrink-0">
-            {currentDoctor.name?.slice(0, 2).toUpperCase()}
-          </div>
-
-          <div className="overflow-hidden">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-med-primary-900">
-                {currentDoctor.name}
-              </h2>
-              <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-med-primary-100 text-med-primary-700">
-                Matrícula: {currentDoctor.licenseNumber}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-med-text-sub mt-0.5">
-              {currentDoctor.specialty?.name || currentDoctor.specialtyName}
-            </p>
-          </div>
-        </Card>
-      )}
-
-      {/* 3. Selector de Disponibilidad */}
-      <Card className="p-5 sm:p-6 border-med-border">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-med-border-subtle">
-          <span className="font-bold text-sm sm:text-base text-med-primary-900">
-            Horarios Disponibles (Zona Horaria Argentina)
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              disabled={weekOffset === 0}
-              onClick={() => {
-                setWeekOffset((n) => n - 1);
-                setSelectedSlot(null);
-              }}
-            >
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              disabled={weekOffset >= 3}
-              onClick={() => {
-                setWeekOffset((n) => n + 1);
-                setSelectedSlot(null);
-              }}
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-
-        <div className="pt-5">
-          <AsyncState
+      {/* 2. Calendario Semanal (Lun-Vie) */}
+      <Card className="p-6 sm:p-7">
+        {selectedDoctorId ? (
+          <SlotSelector
+            weekStart={weekStart}
+            canGoPrev={weekOffset > 0}
+            canGoNext={weekOffset < 3}
+            onPrevWeek={() => {
+              setWeekOffset((w) => Math.max(0, w - 1));
+              setSelectedSlot(null);
+            }}
+            onNextWeek={() => {
+              setWeekOffset((w) => Math.min(3, w + 1));
+              setSelectedSlot(null);
+            }}
+            slots={slots}
             loading={loadingSlots}
-            error={errorSlots}
-            isEmpty={!loadingSlots && !errorSlots && slots.length === 0}
+            error={slotsError}
             onRetry={refetchSlots}
-            emptyTitle="Sin turnos disponibles"
-            emptyDescription="El profesional seleccionado no tiene bloques horarios disponibles."
-          >
-            <div className="flex gap-4 overflow-x-auto snap-x pb-2 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:overflow-visible">
-              {groupedSlotsByDate.map(([dateKey, slots]) => (
-                <div
-                  key={dateKey}
-                  className="w-[min(78vw,17rem)] shrink-0 snap-start sm:w-auto p-3.5 rounded-xl border border-med-border bg-white flex flex-col gap-2.5"
-                >
-                  <p className="text-xs font-bold text-med-primary-900 border-b border-med-border-subtle pb-1.5">
-                    {formatDateAR(dateKey) || dateKey}
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {slots.map((slot) => {
-                      const isSelected = selectedSlot?.id === slot.id;
-
-                      return (
-                        <button
-                          key={slot.id}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`min-w-0 min-h-10 px-1 text-xs font-semibold rounded-lg border transition-all ${
-                            isSelected
-                              ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                              : 'bg-white border-med-border text-med-primary-900 hover:border-med-primary-600 hover:bg-med-primary-50/50'
-                          }`}
-                        >
-                          {slot.startTime}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </AsyncState>
-        </div>
-      </Card>
-
-      {/* 4. Motivo de Consulta + Banner de Confirmación */}
-      <Card className="p-5 sm:p-6 border-med-border">
-        <Input
-          label="Motivo de la consulta"
-          placeholder="Ej. Control cardiológico anual..."
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          error={fieldErrors.reason}
-        />
-
-        {bookingError && (
-          <p className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
-            {bookingError}
+            selectedSlot={selectedSlot}
+            onSelectSlot={(slot) => {
+              setSelectedSlot(slot);
+              setLocalError('');
+              setSuccessMessage('');
+            }}
+          />
+        ) : (
+          <p className="text-sm text-med-text-sub text-center py-6">
+            Seleccioná una especialidad y un médico para ver los horarios
+            disponibles.
           </p>
         )}
+      </Card>
 
-        <div className="mt-4 bg-med-primary-50 border border-med-primary-200/60 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="border-l-4 border-med-primary-900 pl-3.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
-              Resumen de Selección
+      {/* 3. Motivo de consulta y Barra de Resumen */}
+      <Card className="p-6 sm:p-7 flex flex-col gap-4">
+        {displayError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            {displayError} — Elegí otro horario disponible.
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 p-3 text-xs text-green-800">
+            <span>{successMessage}</span>
+            <Button
+              type="button"
+              onClick={() => navigate('/appointments')}
+              className="bg-med-primary-900 text-white text-xs"
+            >
+              Ver Mis Turnos
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-med-text-main">
+            Motivo de consulta
+          </label>
+          <textarea
+            rows={3}
+            placeholder="Describa brevemente el motivo de su consulta (mínimo 5 caracteres)..."
+            value={reason}
+            onChange={(e) => {
+              setReason(e.target.value);
+
+              if (reasonError) setReasonError('');
+            }}
+            className={`w-full rounded-lg border px-3 py-2 text-sm text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 ${
+              reasonError || fieldErrors?.reason
+                ? 'border-red-500 focus:ring-red-500'
+                : 'border-med-border focus:ring-med-primary-600'
+            }`}
+          />
+          {(reasonError || fieldErrors?.reason) && (
+            <span className="text-xs text-red-600">
+              {reasonError || fieldErrors.reason}
             </span>
-            <p className="text-base sm:text-lg font-bold text-med-primary-900 mt-0.5">
-              {selectedSlot
-                ? `${formatDateAR(selectedSlot.date)} ${selectedSlot.startTime} HS`
-                : 'Seleccioná un horario disponible'}
-            </p>
-            <p className="text-xs text-med-text-sub mt-0.5">
-              {currentDoctor ? currentDoctor.name : 'Profesional pendiente'} •
-              Duración: 30 min
-            </p>
+          )}
+        </div>
+
+        {/* Barra de resumen y botón Confirmar Turno */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-med-border">
+          <div className="text-xs sm:text-sm text-med-text-sub">
+            {selectedSlot && selectedSlotStart ? (
+              <span>
+                Turno seleccionado:{' '}
+                <strong className="text-med-primary-900">
+                  {selectedSlotDateLabel}
+                </strong>{' '}
+                a las{' '}
+                <strong className="text-med-primary-900">
+                  {selectedSlotTimeLabel} hs
+                </strong>
+              </span>
+            ) : (
+              <span>Ningún horario seleccionado todavía.</span>
+            )}
           </div>
 
           <Button
             type="button"
-            disabled={
-              !selectedSlot ||
-              !currentDoctor ||
-              !patientDni ||
-              reason.trim().length < 5 ||
-              reason.trim().length > 300
-            }
+            disabled={!selectedSlot || submitting}
             onClick={handleConfirmAppointment}
-            className="flex items-center justify-center gap-2 bg-med-primary-900 hover:bg-med-primary-800 disabled:opacity-50 text-white font-medium py-3 px-6 rounded-xl shadow-md text-sm shrink-0"
+            className="bg-med-primary-900 hover:bg-med-primary-800 text-white disabled:opacity-50"
           >
-            <span>Confirmar Turno</span>
+            {submitting ? 'Confirmando...' : 'Confirmar Turno'}
           </Button>
         </div>
       </Card>
-
-      {/* Modal de Confirmación Exitosa */}
-      {confirmedModal && selectedSlot && currentDoctor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-              ✓
-            </div>
-            <h3 className="text-xl font-bold text-med-primary-900">
-              ¡Turno Confirmado con Éxito!
-            </h3>
-            <p className="text-xs text-med-text-sub mt-2 leading-relaxed">
-              Tu turno con{' '}
-              <strong className="text-med-text-main">
-                {currentDoctor.name}
-              </strong>{' '}
-              ha sido reservado para el{' '}
-              <strong className="text-med-text-main">
-                {formatDateAR(selectedSlot.date)} {selectedSlot.startTime} hs
-              </strong>
-              .
-            </p>
-
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
-              <Button
-                className="w-full text-xs py-2.5"
-                onClick={() => navigate('/appointments')}
-              >
-                Ver Mis Turnos
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full text-xs py-2.5"
-                onClick={() => {
-                  setConfirmedModal(false);
-                  setSelectedSlot(null);
-                  setReason('');
-                  refetchSlots();
-                }}
-              >
-                Reservar Otro
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export default PatientHome;
+

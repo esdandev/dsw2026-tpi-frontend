@@ -1,31 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-import Input from '../../shared/components/Input';
 import AsyncState from '../../shared/components/AsyncState';
 import TablePagination from '../../shared/components/TablePagination';
 import { useSpecialties } from '../hooks/useSpecialties';
 
 function SpecialtiesPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
   const pageSize = 10;
 
-  // Estado del modal para crear especialidad
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-
-  // Hook conectado al backend
   const {
     specialties,
     total,
     loading,
     error,
-    fieldErrors,
     isEmpty,
     refetch,
-    createSpecialty,
     removeSpecialty,
   } = useSpecialties({
     pageIndex,
@@ -40,25 +33,14 @@ function SpecialtiesPage() {
     setPageIndex(0);
   };
 
-  const handleOpenCreateModal = () => {
-    setName('');
-    setDescription('');
-    setIsModalOpen(true);
-  };
+  const handleDelete = async (spec) => {
+    const confirmed = window.confirm(
+      `¿Seguro que desea eliminar la especialidad "${spec.name}"?`
+    );
 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    const res = await createSpecialty({ name, description });
+    if (!confirmed) return;
 
-    if (res.ok) {
-      setIsModalOpen(false);
-      setName('');
-      setDescription('');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    await removeSpecialty(id);
+    await removeSpecialty(spec.id);
   };
 
   return (
@@ -104,7 +86,7 @@ function SpecialtiesPage() {
 
           {/* Botón Nueva Especialidad */}
           <Button
-            onClick={handleOpenCreateModal}
+            onClick={() => navigate('/admin/specialties/new')}
             className="flex items-center gap-1.5 bg-med-primary-900 hover:bg-med-primary-800 text-white font-medium"
           >
             <span>+</span>
@@ -168,7 +150,7 @@ function SpecialtiesPage() {
                           type="button"
                           title="Eliminar especialidad"
                           className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
-                          onClick={() => handleDelete(spec.id)}
+                          onClick={() => handleDelete(spec)}
                         >
                           <svg
                             className="w-4 h-4"
@@ -201,63 +183,6 @@ function SpecialtiesPage() {
           />
         </AsyncState>
       </Card>
-
-      {/* Modal de Creación de Especialidad */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl border border-med-border">
-            <h2 className="text-lg font-bold text-med-text-main">
-              Registrar Nueva Especialidad
-            </h2>
-            <p className="text-xs text-med-text-sub mt-1">
-              Complete los datos para dar de alta la especialidad médica.
-            </p>
-
-            {error && (
-              <p className="mt-3 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-700">
-                {error}
-              </p>
-            )}
-
-            <form
-              onSubmit={handleCreateSubmit}
-              className="mt-4 flex flex-col gap-4"
-            >
-              <Input
-                label="Nombre de la Especialidad"
-                placeholder="Ej. Cardiología Intervencionista"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                error={fieldErrors.name}
-              />
-
-              <Input
-                label="Descripción"
-                placeholder="Detalle el alcance de la especialidad..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                error={fieldErrors.description}
-              />
-
-              <div className="flex justify-end gap-2 mt-2">
-                <Button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-white border border-med-border text-med-text-main hover:bg-gray-50"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-med-primary-900 hover:bg-med-primary-800 text-white"
-                >
-                  Guardar Especialidad
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

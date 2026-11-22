@@ -23,6 +23,7 @@ import OverviewPage from './modules/dashboard/pages/OverviewPage';
 import DoctorsPage from './modules/doctors/pages/DoctorsPage';
 import DoctorAvailabilityPage from './modules/doctors/pages/DoctorAvailabilityPage';
 import DoctorCreatePage from './modules/doctors/pages/DoctorCreatePage';
+import SpecialtyCreatePage from './modules/specialties/pages/SpecialtyCreatePage';
 import SpecialtiesPage from './modules/specialties/pages/SpecialtiesPage';
 import AppointmentsSearchPage from './modules/appointments/pages/AppointmentsSearchPage';
 import AccessDeniedNotice from './modules/shared/components/AccessDeniedNotice';
@@ -87,6 +88,7 @@ const routes = [
         path: 'specialties',
         element: <SpecialtiesPage />,
       },
+      { path: 'specialties/new', element: <SpecialtyCreatePage /> },
       {
         path: 'doctors',
         element: <DoctorsPage />,

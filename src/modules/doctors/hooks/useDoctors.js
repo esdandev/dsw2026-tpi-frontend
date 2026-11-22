@@ -28,17 +28,11 @@ export function useDoctors({
         specialtyId,
       });
 
-      if (currentRequest !== requestId.current) return;
-
       setDoctors(res?.data || []);
       setTotal(res?.total ?? 0);
     } catch (err) {
       const parsed = parseBackendError(err);
 
-      if (currentRequest !== requestId.current) return;
-
-      setDoctors([]);
-      setTotal(0);
       setError(parsed.message);
     } finally {
       if (currentRequest === requestId.current) setLoading(false);
