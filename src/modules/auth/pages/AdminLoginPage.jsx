@@ -116,6 +116,9 @@ function AdminLoginPage() {
                 </span>
                 <input
                   id="admin-email"
+                  aria-describedby={
+                    errors.email ? 'admin-email-error' : undefined
+                  }
                   type="email"
                   aria-invalid={errors.email ? 'true' : undefined}
                   placeholder="admin@medportal.com"
@@ -134,7 +137,11 @@ function AdminLoginPage() {
                 />
               </div>
               {errors.email && (
-                <p role="alert" className="text-xs text-red-500 font-medium">
+                <p
+                  id="admin-email-error"
+                  role="alert"
+                  className="text-xs text-red-500 font-medium"
+                >
                   {errors.email.message}
                 </p>
               )}
@@ -166,6 +173,9 @@ function AdminLoginPage() {
                 </span>
                 <input
                   id="admin-password"
+                  aria-describedby={
+                    errors.password ? 'admin-password-error' : undefined
+                  }
                   type={showPassword ? 'text' : 'password'}
                   aria-invalid={errors.password ? 'true' : undefined}
                   placeholder="••••••••"
@@ -231,7 +241,11 @@ function AdminLoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p role="alert" className="text-xs text-red-500 font-medium">
+                <p
+                  id="admin-password-error"
+                  role="alert"
+                  className="text-xs text-red-500 font-medium"
+                >
                   {errors.password.message}
                 </p>
               )}
