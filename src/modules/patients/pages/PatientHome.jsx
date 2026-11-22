@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
+import Button from '../../shared/components/Button';
 import useProfile from '../../auth/hook/useProfile';
 import {
   SESSION_FIELDS,
@@ -50,11 +51,25 @@ function PatientHome() {
     displayError,
     fieldErrors,
     successMessage,
+    loadError,
+    retryLoad,
     confirmAppointment,
   } = useBookingFlow(patientDni);
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      {loadError && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          <span>{loadError}</span>
+          <Button type="button" variant="outline" onClick={retryLoad}>
+            Reintentar
+          </Button>
+        </div>
+      )}
+
       {/* 1. Selector de Especialidad y Médico */}
       <Card className="p-6 sm:p-7">
         <div className="mb-5">
