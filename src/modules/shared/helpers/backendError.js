@@ -47,13 +47,20 @@ const ISSUE_MESSAGES = {
   past_date: 'No se permiten fechas u horarios pasados.',
   overlap: 'El horario se superpone con otro existente.',
   license_already_registered: 'La matrícula ya está registrada.',
+  speciality_name_already_exists: 'Ya existe una especialidad con ese nombre.',
+  dni_already_registered: 'El DNI ya está registrado.',
+  slot_already_booked: 'Este horario ya está reservado.',
   doctor_slot_already_exists: 'Ya existe un bloque para ese horario.',
 };
 
 function formatIssue(issue) {
   if (!issue) return 'Valor inválido.';
 
-  return ISSUE_MESSAGES[issue] || issue;
+  if (ISSUE_MESSAGES[issue]) return ISSUE_MESSAGES[issue];
+
+  // Los issues ya traducidos por el back llegan en español: se muestran tal cual.
+  // Solo se reemplaza lo que tiene forma de código (snake_case).
+  return /^[a-z0-9]+(_[a-z0-9]+)+$/.test(issue) ? 'Valor inválido.' : issue;
 }
 
 export function parseBackendError(error) {

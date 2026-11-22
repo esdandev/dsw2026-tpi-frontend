@@ -16,6 +16,7 @@ function SpecialtyEditPage() {
   const [notFound, setNotFound] = useState(false);
   const [localErrors, setLocalErrors] = useState({});
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -83,6 +84,7 @@ function SpecialtyEditPage() {
 
     setSubmitting(true);
     setError('');
+    setFieldErrors({});
 
     try {
       await specialtiesService.update(id, {
@@ -91,7 +93,10 @@ function SpecialtyEditPage() {
       });
       navigate('/admin/specialties');
     } catch (err) {
-      setError(parseBackendError(err).message);
+      const parsed = parseBackendError(err);
+
+      setError(parsed.message);
+      setFieldErrors(parsed.fieldErrors || {});
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +158,7 @@ function SpecialtyEditPage() {
                 label="Nombre de la Especialidad"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                error={localErrors.name}
+                error={localErrors.name || fieldErrors.name}
                 disabled={loading || submitting}
               />
 
@@ -171,14 +176,14 @@ function SpecialtyEditPage() {
                   onChange={(event) => setDescription(event.target.value)}
                   disabled={loading || submitting}
                   className={`w-full rounded-lg border px-3 py-2 text-sm text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 ${
-                    localErrors.description
+                    localErrors.description || fieldErrors.description
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-med-border focus:ring-med-primary-600'
                   }`}
                 />
-                {localErrors.description && (
+                {(localErrors.description || fieldErrors.description) && (
                   <span role="alert" className="text-xs text-red-600">
-                    {localErrors.description}
+                    {localErrors.description || fieldErrors.description}
                   </span>
                 )}
               </div>

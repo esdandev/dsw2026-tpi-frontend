@@ -9,12 +9,7 @@ function BookingConfirmCard({
   fieldErrorReason,
   onReasonChange,
   submitting,
-  hasSelectedSlot,
-  selectedSlotStart,
-  specialtyLabel,
-  doctorLabel,
-  dateLabel,
-  timeLabel,
+  slotSummary,
   onConfirm,
   onGoAppointments,
 }) {
@@ -71,38 +66,38 @@ function BookingConfirmCard({
 
       {/* Barra de resumen y botón Confirmar Turno */}
       <div className="flex flex-col gap-4 pt-4 border-t border-med-border">
-        {hasSelectedSlot && selectedSlotStart ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-med-border rounded-xl border border-med-border bg-med-primary-50/40">
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+        {slotSummary ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-med-border bg-med-border">
+            <div className="bg-med-primary-50/40 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Especialidad
               </p>
               <p className="text-xs font-semibold text-med-primary-900 truncate">
-                {specialtyLabel || '—'}
+                {slotSummary.specialtyLabel || '—'}
               </p>
             </div>
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+            <div className="bg-med-primary-50/40 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Profesional
               </p>
               <p className="text-xs font-semibold text-med-primary-900 truncate">
-                {doctorLabel || '—'}
+                {slotSummary.doctorLabel || '—'}
               </p>
             </div>
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+            <div className="bg-med-primary-50/40 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Fecha
               </p>
               <p className="text-xs font-semibold text-med-primary-900">
-                {dateLabel}
+                {slotSummary.dateLabel}
               </p>
             </div>
-            <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+            <div className="bg-med-primary-50/40 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Hora
               </p>
               <p className="text-xs font-semibold text-med-primary-900">
-                {timeLabel} hs
+                {slotSummary.timeLabel} hs
               </p>
             </div>
           </div>
@@ -115,7 +110,7 @@ function BookingConfirmCard({
         <div className="flex justify-end">
           <Button
             type="button"
-            disabled={!hasSelectedSlot || submitting}
+            disabled={!slotSummary || submitting}
             onClick={onConfirm}
             className="bg-med-primary-900 hover:bg-med-primary-800 text-white disabled:opacity-50"
           >

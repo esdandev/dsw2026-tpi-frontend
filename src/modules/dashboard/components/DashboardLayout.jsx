@@ -126,7 +126,7 @@ function DashboardLayout() {
             <h2 className="text-base font-bold text-med-primary-900 leading-tight">
               Admin Portal
             </h2>
-            <span className="text-xs font-medium text-med-text-muted">
+            <span className="text-xs font-medium text-med-text-sub">
               Healthcare Management
             </span>
           </div>
@@ -184,7 +184,7 @@ function DashboardLayout() {
               <p className="text-xs font-semibold text-med-text-main truncate">
                 {email || 'Administrador'}
               </p>
-              <p className="text-[11px] text-med-text-muted truncate">
+              <p className="text-[11px] text-med-text-sub truncate">
                 {role === ROLES.ADMIN ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
@@ -212,7 +212,7 @@ function DashboardLayout() {
               <span className="block font-bold text-sm text-med-primary-900">
                 Admin Portal
               </span>
-              <span className="block text-[10px] font-medium text-med-text-muted">
+              <span className="block text-[10px] font-medium text-med-text-sub">
                 Healthcare Management
               </span>
             </div>
