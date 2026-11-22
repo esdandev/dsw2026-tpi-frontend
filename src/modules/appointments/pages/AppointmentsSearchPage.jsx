@@ -47,19 +47,26 @@ function getStatusDisplay(status) {
   );
 }
 
+function cleanPlaceholderValue(value) {
+  if (!value) return '';
+  const trimmed = String(value).trim();
+ 
+  if (/^(string\s*)+$/i.test(trimmed)) return '';
+  return trimmed;
+}
+
 function AppointmentsSearchPage() {
-  const todayAR = toApiDateFilter(new Date());
   const [dniInput, setDniInput] = useState('');
   const [specialtyInput, setSpecialtyInput] = useState('');
   const [doctorInput, setDoctorInput] = useState('');
-  const [dateInput, setDateInput] = useState(todayAR);
+  const [dateInput, setDateInput] = useState('');
 
   // Filtros aplicados que disparan la consulta
   const [appliedFilters, setAppliedFilters] = useState({
     dni: '',
     specialtyId: '',
     doctorId: '',
-    date: todayAR,
+    date: '',
     pageIndex: 0,
     pageSize: 10,
   });
@@ -118,16 +125,16 @@ function AppointmentsSearchPage() {
   };
 
   const handleClearFilters = () => {
-    setDniInput('');
+   setDniInput('');
     setSpecialtyInput('');
     setDoctorInput('');
-    setDateInput(todayAR);
+    setDateInput('');
     setAppliedFilters((prev) => ({
       ...prev,
       dni: '',
       specialtyId: '',
       doctorId: '',
-      date: todayAR,
+      date: '',
       pageIndex: 0,
     }));
   };
@@ -328,14 +335,18 @@ function AppointmentsSearchPage() {
                     item.doctor?.name ||
                     '-';
 
-                  const patientPrimary =
-                    item.patient?.fullName ||
-                    item.patientFullName ||
-                    item.patientName ||
-                    item.patient?.name ||
-                    item.patient?.email ||
-                    item.patientEmail ||
-                    'Paciente';
+                  const rawPatientName =
+  item.patient?.fullName ||
+  item.patientFullName ||
+  item.patientName ||
+  item.patient?.name;
+
+const rawPatientEmail = item.patient?.email || item.patientEmail;
+
+const patientPrimary =
+  cleanPlaceholderValue(rawPatientName) ||
+  cleanPlaceholderValue(rawPatientEmail) ||
+  'Paciente';
 
                   const patientDni =
                     item.patient?.dni ||
