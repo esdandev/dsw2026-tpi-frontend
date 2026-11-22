@@ -21,7 +21,10 @@ function BookingConfirmCard({
   return (
     <Card className="p-6 sm:p-7 flex flex-col gap-4">
       {displayError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+        >
           {displayError} — Elegí otro horario disponible.
         </div>
       )}
@@ -40,11 +43,16 @@ function BookingConfirmCard({
       )}
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-semibold text-med-text-main">
+        <label
+          htmlFor="booking-reason"
+          className="text-xs font-semibold text-med-text-main"
+        >
           Motivo de consulta
         </label>
         <textarea
+          id="booking-reason"
           rows={3}
+          aria-invalid={reasonError || fieldErrorReason ? 'true' : undefined}
           placeholder="Describa brevemente el motivo de su consulta (mínimo 5 caracteres)..."
           value={reason}
           onChange={onReasonChange}
@@ -55,7 +63,7 @@ function BookingConfirmCard({
           }`}
         />
         {(reasonError || fieldErrorReason) && (
-          <span className="text-xs text-red-600">
+          <span role="alert" className="text-xs text-red-600">
             {reasonError || fieldErrorReason}
           </span>
         )}

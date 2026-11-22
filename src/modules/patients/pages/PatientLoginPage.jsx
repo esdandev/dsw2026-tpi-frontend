@@ -145,7 +145,9 @@ function PatientLoginPage() {
               </div>
 
               {errors.email && (
-                <p className="text-xs text-red-500">{errors.email.message}</p>
+                <p role="alert" className="text-xs text-red-500">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -203,7 +205,9 @@ function PatientLoginPage() {
               </div>
 
               {errors.dni && (
-                <p className="text-xs text-red-500">{errors.dni.message}</p>
+                <p role="alert" className="text-xs text-red-500">
+                  {errors.dni.message}
+                </p>
               )}
             </div>
 
@@ -241,7 +245,7 @@ function PatientLoginPage() {
                   />
 
                   {errors.firstName && (
-                    <p className="text-xs text-red-500">
+                    <p role="alert" className="text-xs text-red-500">
                       {errors.firstName.message}
                     </p>
                   )}
@@ -269,7 +273,7 @@ function PatientLoginPage() {
                   />
 
                   {errors.lastName && (
-                    <p className="text-xs text-red-500">
+                    <p role="alert" className="text-xs text-red-500">
                       {errors.lastName.message}
                     </p>
                   )}

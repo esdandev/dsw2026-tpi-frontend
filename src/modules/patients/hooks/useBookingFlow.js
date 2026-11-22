@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
+import { parseBackendError } from '../../shared/helpers/backendError';
 import { useDoctorSlots } from '../../availabilities/hooks/useAvailabilities';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 import {
@@ -99,13 +100,16 @@ export function useBookingFlow(patientDni) {
   const [submitting, setSubmitting] = useState(false);
   const [localError, setLocalError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [reloadToken, setReloadToken] = useState(0);
 
-  // Cargar especialidades al iniciar
+  // Cargar especialidades al iniciar (y al reintentar)
   useEffect(() => {
     let active = true;
 
     async function loadSpecialties() {
       setLoadingSpecialties(true);
+      setLoadError('');
       try {
         const list = await specialtiesService.getAllForSelect();
 
@@ -116,8 +120,14 @@ export function useBookingFlow(patientDni) {
         if (list.length > 0) {
           setSelectedSpecialtyId(String(list[0].id));
         }
-      } catch {
-        if (active) setSpecialties([]);
+      } catch (err) {
+        if (active) {
+          setSpecialties([]);
+          setLoadError(
+            parseBackendError(err).message ||
+              'No se pudieron cargar las especialidades.'
+          );
+        }
       } finally {
         if (active) setLoadingSpecialties(false);
       }
@@ -128,7 +138,7 @@ export function useBookingFlow(patientDni) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadToken]);
 
   // Cargar médicos al cambiar especialidad
   useEffect(() => {
@@ -164,8 +174,14 @@ export function useBookingFlow(patientDni) {
         if (filtered.length > 0) {
           setSelectedDoctorId(String(filtered[0].id));
         }
-      } catch {
-        if (active) setDoctors([]);
+      } catch (err) {
+        if (active) {
+          setDoctors([]);
+          setLoadError(
+            parseBackendError(err).message ||
+              'No se pudieron cargar los profesionales.'
+          );
+        }
       } finally {
         if (active) setLoadingDoctors(false);
       }
@@ -176,7 +192,7 @@ export function useBookingFlow(patientDni) {
     return () => {
       active = false;
     };
-  }, [selectedSpecialtyId]);
+  }, [selectedSpecialtyId, reloadToken]);
 
   // Cargar slots reales de la semana
   const {
@@ -325,6 +341,8 @@ export function useBookingFlow(patientDni) {
     clearReasonError: () => setReasonError(''),
     submitting,
     displayError: localError || bookingError,
+    loadError,
+    retryLoad: () => setReloadToken((token) => token + 1),
     fieldErrors,
     successMessage,
     confirmAppointment,

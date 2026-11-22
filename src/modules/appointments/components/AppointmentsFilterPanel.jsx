@@ -41,10 +41,14 @@ function AppointmentsFilterPanel({
       >
         {/* DNI del Paciente */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-med-text-sub">
+          <label
+            htmlFor="filter-dni"
+            className="text-xs font-semibold text-med-text-sub"
+          >
             DNI del Paciente
           </label>
           <input
+            id="filter-dni"
             type="text"
             inputMode="numeric"
             value={dni}
@@ -65,10 +69,14 @@ function AppointmentsFilterPanel({
 
         {/* Especialidad */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-med-text-sub">
+          <label
+            htmlFor="filter-specialty"
+            className="text-xs font-semibold text-med-text-sub"
+          >
             Especialidad
           </label>
           <select
+            id="filter-specialty"
             value={specialtyId}
             onChange={(e) => onSpecialtyChange(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
@@ -84,10 +92,14 @@ function AppointmentsFilterPanel({
 
         {/* Doctor */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-med-text-sub">
+          <label
+            htmlFor="filter-doctor"
+            className="text-xs font-semibold text-med-text-sub"
+          >
             Doctor
           </label>
           <select
+            id="filter-doctor"
             value={doctorId}
             onChange={(e) => onDoctorChange(e.target.value)}
             className="w-full px-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main focus:outline-none focus:ring-1 focus:ring-med-primary-600"
@@ -105,10 +117,14 @@ function AppointmentsFilterPanel({
 
         {/* Fecha */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-med-text-sub">
+          <label
+            htmlFor="filter-date"
+            className="text-xs font-semibold text-med-text-sub"
+          >
             Fecha
           </label>
           <input
+            id="filter-date"
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}

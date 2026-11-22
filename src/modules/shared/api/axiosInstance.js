@@ -6,8 +6,12 @@ import {
   readSession,
 } from '../../auth/services/sessionStorage';
 
+const TIMEOUT_MS = 15000;
+
 const instance = axios.create({
   baseURL: '/',
+  // Sin timeout, con el back colgado la pantalla queda cargando para siempre.
+  timeout: TIMEOUT_MS,
 });
 
 instance.interceptors.request.use(

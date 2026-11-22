@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
+import Button from '../../shared/components/Button';
 import useProfile from '../../auth/hook/useProfile';
 import {
   SESSION_FIELDS,
@@ -50,11 +51,25 @@ function PatientHome() {
     displayError,
     fieldErrors,
     successMessage,
+    loadError,
+    retryLoad,
     confirmAppointment,
   } = useBookingFlow(patientDni);
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      {loadError && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          <span>{loadError}</span>
+          <Button type="button" variant="outline" onClick={retryLoad}>
+            Reintentar
+          </Button>
+        </div>
+      )}
+
       {/* 1. Selector de Especialidad y Médico */}
       <Card className="p-6 sm:p-7">
         <div className="mb-5">
@@ -68,10 +83,14 @@ function PatientHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-main">
+            <label
+              htmlFor="booking-specialty"
+              className="text-xs font-semibold text-med-text-main"
+            >
               Especialidad Médica
             </label>
             <select
+              id="booking-specialty"
               value={selectedSpecialtyId}
               disabled={loadingSpecialties}
               onChange={(e) => selectSpecialty(e.target.value)}
@@ -90,10 +109,14 @@ function PatientHome() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-main">
+            <label
+              htmlFor="booking-doctor"
+              className="text-xs font-semibold text-med-text-main"
+            >
               Profesional
             </label>
             <select
+              id="booking-doctor"
               value={selectedDoctorId}
               disabled={loadingDoctors || doctors.length === 0}
               onChange={(e) => selectDoctor(e.target.value)}

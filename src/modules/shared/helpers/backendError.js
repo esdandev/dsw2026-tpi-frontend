@@ -58,11 +58,15 @@ function formatIssue(issue) {
 
 export function parseBackendError(error) {
   if (!error?.response) {
+    const isTimeout =
+      error?.code === 'ECONNABORTED' || /timeout/i.test(error?.message || '');
+
     return {
       status: null,
-      errorCode: 'NETWORK_ERROR',
-      message:
-        'No se pudo conectar con el servidor. Verificá tu conexión a internet.',
+      errorCode: isTimeout ? 'TIMEOUT_ERROR' : 'NETWORK_ERROR',
+      message: isTimeout
+        ? 'La conexión tardó demasiado. Verificá tu conexión y reintentá.'
+        : 'No se pudo conectar con el servidor. Verificá tu conexión a internet y reintentá.',
       fieldErrors: {},
     };
   }

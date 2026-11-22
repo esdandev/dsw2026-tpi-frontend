@@ -96,7 +96,10 @@ function AppointmentsPage() {
       </div>
 
       {actionError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+        >
           {actionError}
         </div>
       )}
