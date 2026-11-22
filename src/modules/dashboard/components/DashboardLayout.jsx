@@ -126,7 +126,7 @@ function DashboardLayout() {
             <h2 className="text-base font-bold text-med-primary-900 leading-tight">
               Admin Portal
             </h2>
-            <span className="text-xs font-medium text-med-text-muted">
+            <span className="text-xs font-medium text-med-text-sub">
               Healthcare Management
             </span>
           </div>
