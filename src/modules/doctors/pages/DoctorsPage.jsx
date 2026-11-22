@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import DataTable from '../../shared/components/DataTable';
+import StatusPill from '../../shared/components/StatusPill';
 import { useDoctors } from '../hooks/useDoctors';
 
 const PAGE_SIZE = 10;
@@ -117,95 +119,64 @@ function DoctorsPage() {
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="mobile-cards w-full text-left text-sm">
-            <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
-              <tr>
-                <th className="px-6 py-3.5">Nombre del Doctor</th>
-                <th className="px-6 py-3.5">Número de Licencia Médica</th>
-                <th className="px-6 py-3.5">Especialidad</th>
-                <th className="px-6 py-3.5 text-right">Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-med-border-subtle">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-8 text-center text-med-text-sub"
+        <DataTable
+          columns={[
+            {
+              key: 'name',
+              header: 'Nombre del Doctor',
+              mobileLabel: 'Médico',
+              cellClassName: 'px-6 py-4 font-semibold text-med-primary-900',
+            },
+            {
+              key: 'licenseNumber',
+              header: 'Número de Licencia Médica',
+              mobileLabel: 'Matrícula',
+              cellClassName: 'px-6 py-4 text-med-text-sub',
+            },
+            {
+              key: 'specialty',
+              header: 'Especialidad',
+              mobileLabel: 'Especialidad',
+              render: (doctor) => (
+                <StatusPill
+                  label={doctor.specialty?.name || 'Sin especialidad'}
+                  badgeClass="bg-med-primary-100 text-med-primary-700"
+                />
+              ),
+            },
+            {
+              key: 'actions',
+              header: 'Acciones',
+              headerClassName: 'px-6 py-3.5 text-right',
+              mobileLabel: 'Acciones',
+              cellClassName: 'px-6 py-4 text-right space-y-2 sm:space-y-0',
+              render: (doctor) => (
+                <>
+                  <Button
+                    variant="outline"
+                    className="text-xs text-red-600 hover:bg-red-50"
+                    disabled={deletingId !== null}
+                    onClick={() => handleDelete(doctor)}
                   >
-                    Cargando médicos...
-                  </td>
-                </tr>
-              ) : doctors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-8 text-center text-med-text-sub"
+                    {deletingId === doctor.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      navigate(`/admin/doctors/${doctor.id}/availability`)
+                    }
                   >
-                    {error || 'No se encontraron médicos.'}
-                  </td>
-                </tr>
-              ) : (
-                doctors.map((doctor) => (
-                  <tr
-                    key={doctor.id}
-                    className="hover:bg-gray-50/70 transition-colors"
-                  >
-                    {/* Nombre */}
-                    <td
-                      data-label="Médico"
-                      className="px-6 py-4 font-semibold text-med-primary-900"
-                    >
-                      {doctor.name}
-                    </td>
-
-                    {/* Licencia médica */}
-                    <td
-                      data-label="Matrícula"
-                      className="px-6 py-4 text-med-text-sub"
-                    >
-                      {doctor.licenseNumber}
-                    </td>
-
-                    {/* Especialidad */}
-                    <td data-label="Especialidad" className="px-6 py-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-med-primary-100 text-med-primary-700">
-                        {doctor.specialty?.name || 'Sin especialidad'}
-                      </span>
-                    </td>
-
-                    {/* Acciones */}
-                    <td
-                      data-label="Acciones"
-                      className="px-6 py-4 text-right space-y-2 sm:space-y-0"
-                    >
-                      <Button
-                        variant="outline"
-                        className="text-xs text-red-600 hover:bg-red-50"
-                        disabled={deletingId !== null}
-                        onClick={() => handleDelete(doctor)}
-                      >
-                        {deletingId === doctor.id
-                          ? 'Eliminando...'
-                          : 'Eliminar'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          navigate(`/admin/doctors/${doctor.id}/availability`)
-                        }
-                      >
-                        Agregar Disponibilidad Horaria
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    Agregar Disponibilidad Horaria
+                  </Button>
+                </>
+              ),
+            },
+          ]}
+          rows={doctors}
+          loading={loading}
+          loadingText="Cargando médicos..."
+          emptyText={error || 'No se encontraron médicos.'}
+        />
 
         {/* Paginación */}
         <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-med-text-muted">

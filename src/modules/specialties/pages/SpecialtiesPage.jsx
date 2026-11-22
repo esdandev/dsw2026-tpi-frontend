@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
+import DataTable from '../../shared/components/DataTable';
 import TablePagination from '../../shared/components/TablePagination';
 import { useSpecialties } from '../hooks/useSpecialties';
 
@@ -112,66 +113,64 @@ function SpecialtiesPage() {
           emptyDescription="Probá cambiando el filtro de búsqueda o agregá una nueva especialidad."
         >
           <div className="overflow-x-auto">
-            <table className="mobile-cards w-full text-left text-sm">
-              <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
-                <tr>
-                  <th className="px-6 py-3.5">Nombre de la Especialidad</th>
-                  <th className="px-6 py-3.5">Descripción</th>
-                  <th className="px-6 py-3.5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-med-border-subtle">
-                {specialties.map((spec) => (
-                  <tr
-                    key={spec.id}
-                    className="hover:bg-gray-50/70 transition-colors"
-                  >
-                    <td data-label="Especialidad" className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-med-primary-100 text-med-primary-700 flex items-center justify-center shrink-0 font-bold text-xs">
-                          {spec.name?.slice(0, 2).toUpperCase()}
-                        </div>
-                        <span className="font-semibold text-med-primary-900">
-                          {spec.name}
-                        </span>
+            <DataTable
+              columns={[
+                {
+                  key: 'name',
+                  header: 'Nombre de la Especialidad',
+                  mobileLabel: 'Especialidad',
+                  cellClassName: 'px-6 py-4',
+                  render: (spec) => (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-med-primary-100 text-med-primary-700 flex items-center justify-center shrink-0 font-bold text-xs">
+                        {spec.name?.slice(0, 2).toUpperCase()}
                       </div>
-                    </td>
-
-                    <td
-                      data-label="Descripción"
-                      className="px-6 py-4 text-med-text-sub max-w-md"
-                    >
-                      {spec.description}
-                    </td>
-
-                    <td data-label="Acciones" className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 text-med-text-muted">
-                        <button
-                          type="button"
-                          title="Eliminar especialidad"
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
-                          onClick={() => handleDelete(spec)}
+                      <span className="font-semibold text-med-primary-900">
+                        {spec.name}
+                      </span>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'description',
+                  header: 'Descripción',
+                  mobileLabel: 'Descripción',
+                  cellClassName: 'px-6 py-4 text-med-text-sub max-w-md',
+                },
+                {
+                  key: 'actions',
+                  header: 'Acciones',
+                  headerClassName: 'px-6 py-3.5 text-right',
+                  mobileLabel: 'Acciones',
+                  cellClassName: 'px-6 py-4 text-right',
+                  render: (spec) => (
+                    <div className="flex items-center justify-end gap-2 text-med-text-muted">
+                      <button
+                        type="button"
+                        title="Eliminar especialidad"
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
+                        onClick={() => handleDelete(spec)}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ),
+                },
+              ]}
+              rows={specialties}
+            />
           </div>
 
           <TablePagination
