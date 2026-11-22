@@ -1,22 +1,23 @@
 import { Navigate } from 'react-router-dom';
 import useSession from '../hook/useSession';
+import { HOME_BY_ROLE } from '../constants';
 
-function ProtectedRoute({ children, allowedRole, redirectTo = '/login' }) {
+function ProtectedRoute({
+  children,
+  allowedRole,
+  allowedRoles,
+  redirectTo = '/login',
+}) {
   const { isAuthenticated, role } = useSession();
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  if (allowedRole && role !== allowedRole) {
-    const homePath =
-      role === 'ADMINISTRADOR'
-        ? '/admin/home'
-        : role === 'PACIENTE'
-          ? '/'
-          : redirectTo;
+  const allowed = allowedRoles ?? (allowedRole ? [allowedRole] : []);
 
-    return <Navigate to={homePath} replace />;
+  if (allowed.length > 0 && !allowed.includes(role)) {
+    return <Navigate to={HOME_BY_ROLE[role] || redirectTo} replace />;
   }
 
   return children;

@@ -8,6 +8,10 @@ import {
   toApiDateFilter,
 } from '../../shared/helpers/dateArgentina';
 import useProfile from '../../auth/hook/useProfile';
+import {
+  SESSION_FIELDS,
+  readSession,
+} from '../../auth/services/sessionStorage';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 
 function getDoctorDisplayName(appt) {
@@ -39,7 +43,7 @@ function mapAppointmentStatus(status) {
 function AppointmentsPage() {
   const navigate = useNavigate();
   const { dni } = useProfile();
-  const patientDni = dni || localStorage.getItem('dni') || '';
+  const patientDni = dni || readSession(SESSION_FIELDS.DNI) || '';
 
   const { appointments, loading, error, isEmpty, refetch, cancelAppointment } =
     usePatientAppointments(patientDni);

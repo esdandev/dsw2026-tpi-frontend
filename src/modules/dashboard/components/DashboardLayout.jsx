@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { ROLES } from '../../auth/constants';
 import useAuthActions from '../../auth/hook/useAuthActions';
 import useProfile from '../../auth/hook/useProfile';
 import useSession from '../../auth/hook/useSession';
@@ -184,7 +185,7 @@ function DashboardLayout() {
                 {email || 'Administrador'}
               </p>
               <p className="text-[11px] text-med-text-muted truncate">
-                {role === 'ADMINISTRADOR' ? 'Administrador' : role || 'Sin rol'}
+                {role === ROLES.ADMIN ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
           </div>

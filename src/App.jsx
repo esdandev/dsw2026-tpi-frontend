@@ -5,6 +5,7 @@ import {
 } from 'react-router-dom';
 import { AuthProvider } from './modules/auth/context/AuthProvider';
 import ProtectedRoute from './modules/auth/components/ProtectedRoute';
+import { ROLES } from './modules/auth/constants';
 
 // Auth Module
 import AdminLoginPage from './modules/auth/pages/AdminLoginPage';
@@ -43,7 +44,7 @@ const routes = [
   {
     path: '/',
     element: (
-      <ProtectedRoute allowedRole="PACIENTE" redirectTo="/login">
+      <ProtectedRoute allowedRoles={[ROLES.PATIENT]} redirectTo="/login">
         <PatientLayout />
       </ProtectedRoute>
     ),
@@ -63,7 +64,7 @@ const routes = [
   {
     path: '/admin',
     element: (
-      <ProtectedRoute allowedRole="ADMINISTRADOR" redirectTo="/admin/login">
+      <ProtectedRoute allowedRoles={[ROLES.ADMIN]} redirectTo="/admin/login">
         <DashboardLayout />
       </ProtectedRoute>
     ),
