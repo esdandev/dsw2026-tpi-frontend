@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
+import Input from '../../shared/components/Input';
 import { doctorsService } from '../services/doctorsService';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { parseBackendError } from '../../shared/helpers/backendError';
@@ -17,6 +18,7 @@ function DoctorEditPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -73,6 +75,7 @@ function DoctorEditPage() {
     setSubmitting(true);
 
     try {
+      setFieldErrors({});
       await doctorsService.update(id, {
         name: name.trim(),
         licenseNumber: licenseNumber.trim(),
@@ -80,7 +83,10 @@ function DoctorEditPage() {
       });
       navigate('/admin/doctors');
     } catch (err) {
-      setError(parseBackendError(err).message);
+      const parsed = parseBackendError(err);
+
+      setError(parsed.message);
+      setFieldErrors(parsed.fieldErrors || {});
     } finally {
       setSubmitting(false);
     }
@@ -132,46 +138,26 @@ function DoctorEditPage() {
               </p>
             )}
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="doctor-name"
-                className="text-sm font-semibold text-med-text-main"
-              >
-                Nombre del médico
-              </label>
+            <Input
+              label="Nombre del médico"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              minLength={3}
+              maxLength={100}
+              required
+              disabled={loading || submitting}
+              error={fieldErrors.name}
+            />
 
-              <input
-                id="doctor-name"
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                minLength={3}
-                maxLength={100}
-                required
-                disabled={loading || submitting}
-                className="w-full rounded-lg border border-med-border px-3 py-2.5 text-sm"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="doctor-license"
-                className="text-sm font-semibold text-med-text-main"
-              >
-                Número de Licencia Médica
-              </label>
-
-              <input
-                id="doctor-license"
-                type="text"
-                value={licenseNumber}
-                onChange={(event) => setLicenseNumber(event.target.value)}
-                maxLength={50}
-                required
-                disabled={loading || submitting}
-                className="w-full rounded-lg border border-med-border px-3 py-2.5 text-sm"
-              />
-            </div>
+            <Input
+              label="Número de Licencia Médica"
+              value={licenseNumber}
+              onChange={(event) => setLicenseNumber(event.target.value)}
+              maxLength={50}
+              required
+              disabled={loading || submitting}
+              error={fieldErrors.licenseNumber}
+            />
 
             <div className="flex flex-col gap-2">
               <label
