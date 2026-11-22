@@ -72,8 +72,8 @@ function BookingConfirmCard({
       {/* Barra de resumen y botón Confirmar Turno */}
       <div className="flex flex-col gap-4 pt-4 border-t border-med-border">
         {hasSelectedSlot && selectedSlotStart ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-med-border rounded-xl border border-med-border bg-med-primary-50/40">
-            <div className="px-4 py-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-xl border border-med-border bg-med-border">
+            <div className="bg-med-primary-50/40 px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Especialidad
               </p>
@@ -81,7 +81,7 @@ function BookingConfirmCard({
                 {specialtyLabel || '—'}
               </p>
             </div>
-            <div className="px-4 py-3">
+            <div className="bg-med-primary-50/40 px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Profesional
               </p>
@@ -89,7 +89,7 @@ function BookingConfirmCard({
                 {doctorLabel || '—'}
               </p>
             </div>
-            <div className="px-4 py-3">
+            <div className="bg-med-primary-50/40 px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Fecha
               </p>
@@ -97,7 +97,7 @@ function BookingConfirmCard({
                 {dateLabel}
               </p>
             </div>
-            <div className="px-4 py-3">
+            <div className="bg-med-primary-50/40 px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Hora
               </p>
