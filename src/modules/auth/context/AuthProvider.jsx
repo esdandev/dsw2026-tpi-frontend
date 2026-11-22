@@ -3,6 +3,7 @@ import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
 import { ROLES } from '../constants';
 import { clearCache } from '../../shared/api/cache';
+import { getTokenRole, isTokenValid } from '../services/token';
 import {
   SESSION_FIELDS,
   clearSession,
@@ -15,11 +16,26 @@ const ProfileContext = createContext();
 const AuthActionsContext = createContext();
 
 function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() =>
-    Boolean(readSession(SESSION_FIELDS.TOKEN))
+  // El rol y la vigencia salen del JWT: una key editable de localStorage no es una frontera de seguridad.
+  const [initialSession] = useState(() => {
+    const token = readSession(SESSION_FIELDS.TOKEN);
+    const valid = isTokenValid(token);
+
+    if (token && !valid) {
+      clearSession();
+    }
+
+    return {
+      isAuthenticated: valid,
+      role: valid ? getTokenRole(token) : null,
+    };
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    initialSession.isAuthenticated
   );
 
-  const [role, setRole] = useState(() => readSession(SESSION_FIELDS.ROLE));
+  const [role, setRole] = useState(initialSession.role);
   const [email, setEmail] = useState(() => readSession(SESSION_FIELDS.EMAIL));
   const [dni, setDni] = useState(() => readSession(SESSION_FIELDS.DNI));
 
@@ -36,22 +52,22 @@ function AuthProvider({ children }) {
   const setAuthSession = useCallback((token, userRole, userData = null) => {
     clearCache();
     saveSession(SESSION_FIELDS.TOKEN, token);
-    saveSession(SESSION_FIELDS.ROLE, userRole);
 
+    const sessionRole = getTokenRole(token) ?? userRole ?? null;
     const sessionEmail = userData?.email?.trim() || null;
 
     const sessionDni =
-      userRole === ROLES.PATIENT && userData?.dni != null
+      sessionRole === ROLES.PATIENT && userData?.dni != null
         ? String(userData.dni)
         : null;
 
     saveSession(SESSION_FIELDS.EMAIL, sessionEmail);
     saveSession(SESSION_FIELDS.DNI, sessionDni);
 
-    setRole(userRole || null);
+    setRole(sessionRole);
     setEmail(sessionEmail);
     setDni(sessionDni);
-    setIsAuthenticated(true);
+    setIsAuthenticated(isTokenValid(token));
   }, []);
 
   const singinAdmin = useCallback(
