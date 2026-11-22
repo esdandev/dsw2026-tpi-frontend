@@ -184,7 +184,7 @@ function DashboardLayout() {
               <p className="text-xs font-semibold text-med-text-main truncate">
                 {email || 'Administrador'}
               </p>
-              <p className="text-[11px] text-med-text-muted truncate">
+              <p className="text-[11px] text-med-text-sub truncate">
                 {role === ROLES.ADMIN ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
