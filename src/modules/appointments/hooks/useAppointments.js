@@ -185,7 +185,7 @@ export function useAdminAppointments({ pageSize = 10 } = {}) {
         setTotalCount(result.totalCount);
         setPageIndex(nextPage);
       } catch (err) {
-        const normalized = normalizeApiError(err);
+        const normalized = parseBackendError(err);
         setError(normalized.message || 'No se pudieron cargar los turnos.');
         setAppointments([]);
         setTotalCount(0);
