@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
 import { parseBackendError } from '../../shared/helpers/backendError';
@@ -102,6 +102,7 @@ export function useBookingFlow(patientDni) {
   const [successMessage, setSuccessMessage] = useState('');
   const [loadError, setLoadError] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
+  const lastSpecialtyRef = useRef('');
 
   // Cargar especialidades al iniciar (y al reintentar)
   useEffect(() => {
@@ -118,7 +119,8 @@ export function useBookingFlow(patientDni) {
         setSpecialties(list);
 
         if (list.length > 0) {
-          setSelectedSpecialtyId(String(list[0].id));
+          // Al reintentar no pisamos la especialidad que el paciente ya eligió.
+          setSelectedSpecialtyId((current) => current || String(list[0].id));
         }
       } catch (err) {
         if (active) {
@@ -153,8 +155,14 @@ export function useBookingFlow(patientDni) {
       }
 
       setLoadingDoctors(true);
-      setSelectedDoctorId('');
-      setSelectedSlot(null);
+      setLoadError('');
+
+      // Solo se limpia la selección cuando cambió la especialidad, no al reintentar.
+      if (lastSpecialtyRef.current !== selectedSpecialtyId) {
+        lastSpecialtyRef.current = selectedSpecialtyId;
+        setSelectedDoctorId('');
+        setSelectedSlot(null);
+      }
 
       try {
         const list = await doctorsService.getAllForSelect({
@@ -171,9 +179,14 @@ export function useBookingFlow(patientDni) {
 
         setDoctors(filtered);
 
-        if (filtered.length > 0) {
-          setSelectedDoctorId(String(filtered[0].id));
-        }
+        // Conserva el m�dico elegido si sigue existiendo en la especialidad.
+        setSelectedDoctorId((current) =>
+          filtered.some((doc) => String(doc.id) === current)
+            ? current
+            : filtered.length > 0
+              ? String(filtered[0].id)
+              : ''
+        );
       } catch (err) {
         if (active) {
           setDoctors([]);
