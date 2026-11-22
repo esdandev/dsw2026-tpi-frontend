@@ -3,6 +3,9 @@ const DEFAULT_TTL_MS = 60000;
 const cached = new Map();
 const inFlight = new Map();
 
+// Sube en cada invalidación: una request que arrancó antes no debe cachear su resultado.
+let generation = 0;
+
 function serializeParams(params) {
   if (!params) return '';
 
@@ -17,11 +20,14 @@ export function buildCacheKey(url, params) {
 }
 
 export function clearCache() {
+  generation += 1;
   cached.clear();
   inFlight.clear();
 }
 
 export function invalidateByPrefix(prefix) {
+  generation += 1;
+
   for (const key of cached.keys()) {
     if (key.startsWith(prefix)) cached.delete(key);
   }
@@ -44,10 +50,15 @@ export async function getCached(
   // Dos componentes que piden lo mismo a la vez comparten una sola request.
   if (inFlight.has(key)) return inFlight.get(key);
 
+  const startedAt = generation;
+
   const request = client
     .get(url, { params })
     .then((response) => {
-      cached.set(key, { data: response.data, expiresAt: Date.now() + ttl });
+      // Si hubo una invalidación mientras la request estaba en vuelo, el dato ya es viejo.
+      if (startedAt === generation) {
+        cached.set(key, { data: response.data, expiresAt: Date.now() + ttl });
+      }
 
       return response.data;
     })
