@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { parseBackendError } from '../../shared/helpers/backendError';
 import { appointmentsService } from '../services/appointmentsService';
 
@@ -137,98 +137,5 @@ export function usePatientAppointments(dni) {
     refetch: fetchPatientAppointments,
     bookAppointment,
     cancelAppointment,
-  };
-}
-
-export function useAdminAppointments({ pageSize = 10 } = {}) {
-  const [appointments, setAppointments] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [pageIndex, setPageIndex] = useState(1);
-  const [filters, setFilters] = useState({
-    dni: '',
-    specialtyId: '',
-    doctorId: '',
-    date: '',
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const fetchAppointments = useCallback(
-    async (nextPage = pageIndex, currentFilters = filters) => {
-      setLoading(true);
-      setError('');
-
-      const hasSearchFilters = Boolean(
-        currentFilters.dni?.trim() ||
-        currentFilters.specialtyId ||
-        currentFilters.doctorId ||
-        currentFilters.date
-      );
-
-      try {
-        const result = hasSearchFilters
-          ? await appointmentsService.search({
-              pageSize,
-              pageIndex: nextPage,
-              specialtyId: currentFilters.specialtyId,
-              doctorId: currentFilters.doctorId,
-              dni: currentFilters.dni,
-              date: currentFilters.date,
-            })
-          : await appointmentsService.getAll({
-              pageSize,
-              pageIndex: nextPage,
-            });
-
-        setAppointments(result.items);
-        setTotalCount(result.totalCount);
-        setPageIndex(nextPage);
-      } catch (err) {
-        const normalized = parseBackendError(err);
-
-        setError(normalized.message || 'No se pudieron cargar los turnos.');
-        setAppointments([]);
-        setTotalCount(0);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [pageSize, pageIndex, filters]
-  );
-
-  useEffect(() => {
-    fetchAppointments(1, filters);
-  }, []);
-
-  const applyFilters = (newFilters) => {
-    setFilters(newFilters);
-    fetchAppointments(1, newFilters);
-  };
-
-  const resetFilters = () => {
-    const empty = { dni: '', specialtyId: '', doctorId: '', date: '' };
-
-    setFilters(empty);
-    fetchAppointments(1, empty);
-  };
-
-  const goToPage = (nextPage) => {
-    if (nextPage < 1) return;
-
-    fetchAppointments(nextPage, filters);
-  };
-
-  return {
-    appointments,
-    totalCount,
-    pageIndex,
-    pageSize,
-    filters,
-    loading,
-    error,
-    applyFilters,
-    resetFilters,
-    goToPage,
-    refetch: () => fetchAppointments(pageIndex, filters),
   };
 }
