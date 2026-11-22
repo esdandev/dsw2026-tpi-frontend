@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../hook/useAuth';
+import useAuthActions from '../hook/useAuthActions';
 
 function AdminLoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
@@ -14,7 +14,7 @@ function AdminLoginPage() {
   } = useForm({ defaultValues: { email: '', password: '' } });
 
   const navigate = useNavigate();
-  const { singinAdmin } = useAuth();
+  const { singinAdmin } = useAuthActions();
 
   const onValid = async (formData) => {
     try {

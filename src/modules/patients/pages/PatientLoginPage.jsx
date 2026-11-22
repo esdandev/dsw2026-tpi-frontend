@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../../auth/hook/useAuth';
+import useAuthActions from '../../auth/hook/useAuthActions';
 
 function PatientLoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [showDni, setShowDni] = useState(false);
 
   const navigate = useNavigate();
-  const { singinPatient } = useAuth();
+  const { singinPatient } = useAuthActions();
 
   const {
     register,

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import useAuth from '../../auth/hook/useAuth';
+import useAuthActions from '../../auth/hook/useAuthActions';
+import useProfile from '../../auth/hook/useProfile';
 
 function PatientLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { singout, email } = useAuth();
+  const { singout } = useAuthActions();
+  const { email } = useProfile();
 
   const patientInitials = email?.slice(0, 2).toUpperCase() || 'PA';
 

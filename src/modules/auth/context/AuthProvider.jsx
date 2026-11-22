@@ -2,7 +2,9 @@ import { createContext, useState } from 'react';
 import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
 
-const AuthContext = createContext();
+const SessionContext = createContext();
+const ProfileContext = createContext();
+const AuthActionsContext = createContext();
 
 function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -106,21 +108,16 @@ function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        role,
-        email,
-        dni,
-        singinAdmin,
-        singinPatient,
-        singout,
-        setAuthSession,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <SessionContext.Provider value={{ isAuthenticated, role }}>
+      <ProfileContext.Provider value={{ email, dni }}>
+        <AuthActionsContext.Provider
+          value={{ singinAdmin, singinPatient, singout, setAuthSession }}
+        >
+          {children}
+        </AuthActionsContext.Provider>
+      </ProfileContext.Provider>
+    </SessionContext.Provider>
   );
 }
 
-export { AuthProvider, AuthContext };
+export { AuthProvider, SessionContext, ProfileContext, AuthActionsContext };

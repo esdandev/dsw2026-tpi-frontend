@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import useAuth from '../../auth/hook/useAuth';
+import useAuthActions from '../../auth/hook/useAuthActions';
+import useProfile from '../../auth/hook/useProfile';
+import useSession from '../../auth/hook/useSession';
 
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { singout, email, role } = useAuth();
+  const { singout } = useAuthActions();
+  const { email } = useProfile();
+  const { role } = useSession();
 
   const adminInitials = email?.slice(0, 2).toUpperCase() || 'AD';
 

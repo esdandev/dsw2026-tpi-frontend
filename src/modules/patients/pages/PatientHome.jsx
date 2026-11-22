@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
-import useAuth from '../../auth/hook/useAuth';
+import useProfile from '../../auth/hook/useProfile';
 import BookingConfirmCard from '../components/BookingConfirmCard';
 import {
   getDoctorInitials,
@@ -11,8 +11,8 @@ import SlotSelector from '../components/SlotSelector';
 
 function PatientHome() {
   const navigate = useNavigate();
-  const { dni, user } = useAuth();
-  const patientDni = dni || user?.dni || localStorage.getItem('dni') || '';
+  const { dni } = useProfile();
+  const patientDni = dni || localStorage.getItem('dni') || '';
 
   const {
     specialties,

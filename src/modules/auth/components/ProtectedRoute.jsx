@@ -1,8 +1,8 @@
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hook/useAuth';
+import useSession from '../hook/useSession';
 
 function ProtectedRoute({ children, allowedRole, redirectTo = '/login' }) {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role } = useSession();
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
