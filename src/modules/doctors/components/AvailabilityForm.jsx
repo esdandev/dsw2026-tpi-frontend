@@ -216,7 +216,7 @@ function AvailabilityForm({
           disabled={saving}
           onClick={resetForm}
         >
-          Descartar cambios
+          Restablecer
         </Button>
 
         <Button type="submit" disabled={saving} className="disabled:opacity-50">

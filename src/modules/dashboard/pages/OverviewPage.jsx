@@ -176,10 +176,7 @@ function OverviewPage() {
           <Button onClick={() => navigate('/admin/doctors/new')}>
             + Agregar Nuevo Doctor
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/admin/specialties')}
-          >
+          <Button onClick={() => navigate('/admin/specialties')}>
             + Agregar Nueva Especialidad
           </Button>
         </div>
