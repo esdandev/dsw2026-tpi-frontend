@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
@@ -9,6 +9,7 @@ import { useSpecialties } from '../hooks/useSpecialties';
 
 function SpecialtiesPage() {
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
   const pageSize = 10;
@@ -27,12 +28,17 @@ function SpecialtiesPage() {
     name: searchTerm,
   });
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  // Filtra mientras se escribe, con el mismo debounce que el directorio de médicos.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput.trim());
+      setPageIndex(0);
+    }, 300);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setPageIndex(0);
-  };
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handleDelete = async (spec) => {
     const confirmed = window.confirm(
@@ -79,8 +85,8 @@ function SpecialtiesPage() {
             <input
               type="text"
               placeholder="Buscar especialidad..."
-              value={searchTerm}
-              onChange={handleSearchChange}
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 focus:ring-med-primary-600"
             />
           </div>

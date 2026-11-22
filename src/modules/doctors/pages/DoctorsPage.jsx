@@ -175,9 +175,13 @@ function DoctorsPage() {
 
         {/* Paginación */}
         <div className="p-4 bg-med-primary-50/50 border-t border-med-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-med-text-muted">
-          <span>
-            Mostrando {firstResult}–{lastResult} de {total} registros
-          </span>
+          {total === 0 && !loading ? (
+            <span>No se encontraron registros</span>
+          ) : (
+            <span>
+              Mostrando {firstResult}–{lastResult} de {total} registros
+            </span>
+          )}
 
           <div className="flex items-center gap-2">
             <Button
