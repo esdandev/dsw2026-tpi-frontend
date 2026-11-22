@@ -47,12 +47,17 @@ API_PROXY_TARGET=http://localhost:5278
    npm run lint
    ```
 
-3. **Iniciar aplicación en desarrollo** (disponible en `http://localhost:5173`, con el backend corriendo en `http://localhost:5278`):
+3. **Ejecutar tests de helpers:**
+   ```bash
+   npm test
+   ```
+
+4. **Iniciar aplicación en desarrollo** (disponible en `http://localhost:5173`, con el backend corriendo en `http://localhost:5278`):
    ```bash
    npm run dev
    ```
 
-4. **Crear archivos para producción:**
+5. **Crear archivos para producción:**
    ```bash
    npm run build
    ```
@@ -81,20 +86,23 @@ src/
 
 | Módulo | Método | Endpoint | Descripción |
 | :--- | :--- | :--- | :--- |
-| **Autenticación** | `POST` | `/api/auth/login` | Autenticación de usuarios (`ADMIN` / `PACIENTE`) y obtención de JWT. |
-| | `POST` | `/api/auth/register` | Registro de nuevos pacientes con DNI. |
-| **Especialidades** | `GET` | `/api/specialties` | Listado paginado de especialidades y carga de selectores. |
+| **Autenticación** | `POST` | `/api/auth/admin/login` | Login de administrador y obtención del JWT. |
+| | `POST` | `/api/auth/patient/login` | Login de paciente con email y DNI; si no existe, se registra automáticamente. |
+| | `POST` | `/api/auth/logout` | Revocación del token actual (requiere JWT). |
+| **Especialidades** | `GET` | `/api/specialties` | Listado paginado de especialidades (`pageSize`, `pageIndex`, `name`). |
 | | `POST` | `/api/specialties` | Alta de especialidad médica. |
-| | `PATCH` | `/api/specialties/{id}/deactivate` | Desactivación lógica de especialidad. |
-| **Profesionales** | `GET` | `/api/doctors` | Listado paginado de médicos y filtrado por especialidad. |
+| | `PUT` | `/api/specialties/{id}` | Actualización de especialidad. |
+| | `DELETE` | `/api/specialties/{id}` | Baja lógica de especialidad. |
+| **Profesionales** | `GET` | `/api/doctors` | Listado paginado de médicos (`pageSize`, `pageIndex`, `name`, `specialtyId`). |
+| | `GET` | `/api/doctors/{id}/availabilities` | Franjas horarias configuradas para un médico. |
+| | `GET` | `/api/doctors/{id}/slots` | Slots libres por rango de fechas (`from` y `to`). |
 | | `POST` | `/api/doctors` | Alta de profesional médico con matrícula (`licenseNumber`). |
-| | `PATCH` | `/api/doctors/{id}/deactivate` | Desactivación lógica de profesional. |
-| **Disponibilidades** | `GET` | `/api/availabilities/doctor/{doctorId}` | Consulta de bloques horarios configurados para un médico. |
-| | `POST` | `/api/availabilities` | Alta de bloques de disponibilidad horaria. |
-| | `DELETE` | `/api/availabilities/{id}` | Eliminación de bloque de disponibilidad. |
-| | `GET` | `/api/availabilities/doctor/{doctorId}/slots` | Consulta de horarios libres por rango de fechas (`from` y `to`). |
+| | `PUT` | `/api/doctors/{id}` | Actualización de profesional. |
+| | `DELETE` | `/api/doctors/{id}` | Baja lógica de profesional. |
+| **Disponibilidades** | `POST` | `/api/availabilities` | Alta de la disponibilidad semanal de un médico. |
+| | `PUT` | `/api/availabilities` | Actualización de la disponibilidad semanal. |
 | **Turnos** | `POST` | `/api/appointments` | Reserva de turno médico (`doctorId`, `availabilitySlotId`, `patient.dni`, `reason`). |
-| | `GET` | `/api/appointments/patient` | Consulta de turnos del paciente autenticado mediante `dni`. |
+| | `GET` | `/api/appointments/patient` | Turnos del paciente autenticado (`dni`). |
 | | `DELETE` | `/api/appointments/{id}` | Cancelación de turno por parte del paciente. |
 | | `GET` | `/api/appointments` | Listado administrativo paginado por fecha (`date`, `pageIndex`, `pageSize`). |
 | | `GET` | `/api/appointments/search` | Búsqueda administrativa filtrada por `dni`, `specialtyId`, `doctorId` y `date`. |
@@ -123,7 +131,7 @@ src/
 - **Paciente:**
   - **Email:** `paciente@gmail.com`
   - **DNI:** `12345677`
-  - (o registrar un paciente nuevo desde `/register`)*
+  - No hay registro público: el primer login con un email y DNI nuevos crea el paciente.
 
 ### Flujo recomendado de prueba
 

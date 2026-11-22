@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  addDays,
   formatDateAR,
   formatTimeAR,
   formatDateTimeAR,
@@ -26,5 +27,10 @@ describe('dateArgentina helper', () => {
 
   it('preserva filtros de fecha YYYY-MM-DD', () => {
     assert.equal(toApiDateFilter('2026-11-05'), '2026-11-05');
+  });
+
+  it('suma dias incluso en el cambio de anio', () => {
+    assert.equal(addDays('2026-11-23', 7), '2026-11-30');
+    assert.equal(addDays('2026-12-31', 1), '2027-01-01');
   });
 });

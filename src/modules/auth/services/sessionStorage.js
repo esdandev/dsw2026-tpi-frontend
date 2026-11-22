@@ -1,6 +1,5 @@
 export const SESSION_FIELDS = {
   TOKEN: 'token',
-  ROLE: 'role',
   DNI: 'dni',
   EMAIL: 'email',
 };

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ROLES } from '../../auth/constants';
 import {
   SESSION_FIELDS,
   clearSession,
@@ -36,14 +35,9 @@ instance.interceptors.response.use(
     );
 
     if (error.response?.status === 401 && !isLoginRequest) {
-      const role = readSession(SESSION_FIELDS.ROLE);
-
-      const isAdmin =
-        role === ROLES.ADMIN ||
-        (role !== ROLES.PATIENT &&
-          window.location.pathname.startsWith('/admin'));
-
-      const loginPath = isAdmin ? '/admin/login' : '/login';
+      const loginPath = window.location.pathname.startsWith('/admin')
+        ? '/admin/login'
+        : '/login';
 
       clearSession();
 
