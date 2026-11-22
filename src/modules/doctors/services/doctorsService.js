@@ -48,6 +48,7 @@ export const doctorsService = {
 
   async create(payload) {
     invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     const { data } = await axiosInstance.post('/api/doctors', payload);
 
     return data;
@@ -55,6 +56,7 @@ export const doctorsService = {
 
   async update(id, payload) {
     invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     const { data } = await axiosInstance.put(`/api/doctors/${id}`, payload);
 
     return data;
@@ -62,6 +64,7 @@ export const doctorsService = {
 
   async remove(id) {
     invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     await axiosInstance.delete(`/api/doctors/${id}`);
   },
 };
