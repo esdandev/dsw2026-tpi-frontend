@@ -1,126 +1,131 @@
-import { createContext, useState } from 'react';
+import { createContext, useCallback, useMemo, useState } from 'react';
 import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
+import { ROLES } from '../constants';
+import {
+  SESSION_FIELDS,
+  clearSession,
+  readSession,
+  saveSession,
+} from '../services/sessionStorage';
 
-const AuthContext = createContext();
+const SessionContext = createContext();
+const ProfileContext = createContext();
+const AuthActionsContext = createContext();
 
 function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const token = localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(() =>
+    Boolean(readSession(SESSION_FIELDS.TOKEN))
+  );
 
-    return Boolean(token);
-  });
+  const [role, setRole] = useState(() => readSession(SESSION_FIELDS.ROLE));
+  const [email, setEmail] = useState(() => readSession(SESSION_FIELDS.EMAIL));
+  const [dni, setDni] = useState(() => readSession(SESSION_FIELDS.DNI));
 
-  const [role, setRole] = useState(() => localStorage.getItem('role'));
-  const [email, setEmail] = useState(() => localStorage.getItem('email'));
-  const [dni, setDni] = useState(() => localStorage.getItem('dni'));
-
-  const singout = () => {
-    ['token', 'role', 'dni', 'email'].forEach((key) => {
-      localStorage.removeItem(key);
-    });
+  const singout = useCallback(() => {
+    clearSession();
 
     setIsAuthenticated(false);
     setRole(null);
     setEmail(null);
     setDni(null);
-  };
+  }, []);
 
-  const setAuthSession = (token, userRole, userData = null) => {
-    localStorage.setItem('token', token);
-
-    if (userRole) {
-      localStorage.setItem('role', userRole);
-    }
+  const setAuthSession = useCallback((token, userRole, userData = null) => {
+    saveSession(SESSION_FIELDS.TOKEN, token);
+    saveSession(SESSION_FIELDS.ROLE, userRole);
 
     const sessionEmail = userData?.email?.trim() || null;
 
     const sessionDni =
-      userRole === 'PACIENTE' && userData?.dni != null
+      userRole === ROLES.PATIENT && userData?.dni != null
         ? String(userData.dni)
         : null;
 
-    if (sessionEmail) {
-      localStorage.setItem('email', sessionEmail);
-    } else {
-      localStorage.removeItem('email');
-    }
-
-    if (sessionDni) {
-      localStorage.setItem('dni', sessionDni);
-    } else {
-      localStorage.removeItem('dni');
-    }
+    saveSession(SESSION_FIELDS.EMAIL, sessionEmail);
+    saveSession(SESSION_FIELDS.DNI, sessionDni);
 
     setRole(userRole || null);
     setEmail(sessionEmail);
     setDni(sessionDni);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const singinAdmin = async (email, password) => {
-    const { data, error } = await loginAdmin(email, password);
+  const singinAdmin = useCallback(
+    async (email, password) => {
+      const { data, error } = await loginAdmin(email, password);
 
-    if (error) {
-      return { error };
-    }
+      if (error) {
+        return { error };
+      }
 
-    if (!data?.token || data.role !== 'ADMINISTRADOR') {
-      return {
-        error: {
-          frontendErrorMessage:
-            'Respuesta de autenticación administrativa inválida',
-        },
-      };
-    }
+      if (!data?.token || data.role !== ROLES.ADMIN) {
+        return {
+          error: {
+            frontendErrorMessage:
+              'Respuesta de autenticación administrativa inválida',
+          },
+        };
+      }
 
-    setAuthSession(data.token, data.role, { email });
+      setAuthSession(data.token, data.role, { email });
 
-    return { error: null };
-  };
+      return { error: null };
+    },
+    [setAuthSession]
+  );
 
-  const singinPatient = async ({ email, dni, firstName, lastName }) => {
-    const { data, error } = await loginPatient({
-      email,
-      dni,
-      firstName,
-      lastName,
-    });
-
-    if (error) {
-      return { error };
-    }
-
-    if (!data?.token || data.role !== 'PACIENTE') {
-      return {
-        error: {
-          frontendErrorMessage:
-            'Respuesta de autenticación del paciente inválida',
-        },
-      };
-    }
-
-    setAuthSession(data.token, data.role, { email, dni });
-
-    return { error: null };
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        role,
+  const singinPatient = useCallback(
+    async ({ email, dni, firstName, lastName }) => {
+      const { data, error } = await loginPatient({
         email,
         dni,
-        singinAdmin,
-        singinPatient,
-        singout,
-        setAuthSession,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+        firstName,
+        lastName,
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      if (!data?.token || data.role !== ROLES.PATIENT) {
+        return {
+          error: {
+            frontendErrorMessage:
+              'Respuesta de autenticación del paciente inválida',
+          },
+        };
+      }
+
+      setAuthSession(data.token, data.role, { email, dni });
+
+      return { error: null };
+    },
+    [setAuthSession]
+  );
+
+  // Cada rebanada se memoiza por separado: cambiar el perfil no re-renderiza a quien solo mira la sesión.
+  const session = useMemo(
+    () => ({ isAuthenticated, role }),
+    [isAuthenticated, role]
+  );
+
+  const profile = useMemo(() => ({ email, dni }), [email, dni]);
+
+  const actions = useMemo(
+    () => ({ singinAdmin, singinPatient, singout, setAuthSession }),
+    [singinAdmin, singinPatient, singout, setAuthSession]
+  );
+
+  return (
+    <SessionContext.Provider value={session}>
+      <ProfileContext.Provider value={profile}>
+        <AuthActionsContext.Provider value={actions}>
+          {children}
+        </AuthActionsContext.Provider>
+      </ProfileContext.Provider>
+    </SessionContext.Provider>
   );
 }
 
-export { AuthProvider, AuthContext };
+export { AuthProvider, SessionContext, ProfileContext, AuthActionsContext };

@@ -29,16 +29,16 @@ function normalizePagedAppointments(raw, pageIndex, pageSize) {
 
 export const appointmentsService = {
   async getAll({ pageIndex = 0, pageSize = 10, date = '' } = {}) {
-  const params = {
-    pageIndex,
-    pageSize,
-    date: toApiDateFilter(date || new Date()),
-  };
+    const params = {
+      pageIndex,
+      pageSize,
+      date: toApiDateFilter(date || new Date()),
+    };
 
-  const { data } = await axiosInstance.get('/api/appointments', { params });
+    const { data } = await axiosInstance.get('/api/appointments', { params });
 
-  return normalizePagedAppointments(data, pageIndex, pageSize);
-},
+    return normalizePagedAppointments(data, pageIndex, pageSize);
+  },
 
   async search({
     pageIndex = 0,
@@ -58,8 +58,11 @@ export const appointmentsService = {
     const params = { pageIndex, pageSize };
 
     if (specialtyId) params.specialtyId = specialtyId;
+
     if (doctorId) params.doctorId = doctorId;
+
     if (cleanDni) params.dni = cleanDni;
+
     if (date) params.date = toApiDateFilter(date);
 
     const { data } = await axiosInstance.get('/api/appointments/search', {
@@ -79,10 +82,9 @@ export const appointmentsService = {
 
   async book(bookingInput) {
     const cleanDni = Number(
-      String(bookingInput.patientDni ?? bookingInput.patient?.dni ?? '').replace(
-        /\D/g,
-        ''
-      )
+      String(
+        bookingInput.patientDni ?? bookingInput.patient?.dni ?? ''
+      ).replace(/\D/g, '')
     );
 
     const payload = {

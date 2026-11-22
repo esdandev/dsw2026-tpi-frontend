@@ -7,7 +7,11 @@ import {
   formatTimeAR,
   toApiDateFilter,
 } from '../../shared/helpers/dateArgentina';
-import useAuth from '../../auth/hook/useAuth';
+import useProfile from '../../auth/hook/useProfile';
+import {
+  SESSION_FIELDS,
+  readSession,
+} from '../../auth/services/sessionStorage';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 
 function getDoctorDisplayName(appt) {
@@ -26,8 +30,11 @@ function mapAppointmentStatus(status) {
   const normalized = String(status || '').toUpperCase();
 
   if (normalized === 'BOOKED') return 'Confirmado';
+
   if (normalized === 'CANCELLED') return 'Cancelado';
+
   if (normalized === 'ATTENDED') return 'Atendido';
+
   if (normalized === 'NO_SHOW') return 'Ausente';
 
   return status || 'Confirmado';
@@ -35,17 +42,11 @@ function mapAppointmentStatus(status) {
 
 function AppointmentsPage() {
   const navigate = useNavigate();
-  const { dni, user } = useAuth();
-  const patientDni = dni || user?.dni || localStorage.getItem('dni') || '';
+  const { dni } = useProfile();
+  const patientDni = dni || readSession(SESSION_FIELDS.DNI) || '';
 
-  const {
-    appointments,
-    loading,
-    error,
-    isEmpty,
-    refetch,
-    cancelAppointment,
-  } = usePatientAppointments(patientDni);
+  const { appointments, loading, error, isEmpty, refetch, cancelAppointment } =
+    usePatientAppointments(patientDni);
 
   const [cancellingId, setCancellingId] = useState(null);
   const [actionError, setActionError] = useState('');
@@ -63,6 +64,7 @@ function AppointmentsPage() {
     setActionError('');
     setCancellingId(apptId);
     const res = await cancelAppointment(apptId);
+
     setCancellingId(null);
 
     if (!res.ok) {
@@ -111,7 +113,10 @@ function AppointmentsPage() {
           {appointments.map((appt) => {
             const apptId = appt.id || appt.appointmentsId;
             const rawDate =
-              appt.availableTime || appt.startTime || appt.date || appt.slotDate;
+              appt.availableTime ||
+              appt.startTime ||
+              appt.date ||
+              appt.slotDate;
             const specialtyName =
               appt.specialtyName || appt.specialty?.name || '';
             const rawStatus = appt.status || appt.appointmentsStatus;

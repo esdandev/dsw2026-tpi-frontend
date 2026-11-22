@@ -14,8 +14,6 @@ function addDays(yyyyMmDd, days) {
   return toApiDateFilter(utc);
 }
 
-
-
 function getSlotId(slot) {
   return slot.availabilitySlotId ?? slot.id;
 }
@@ -60,27 +58,30 @@ function SlotSelector({
   const availableSlots = slots.filter(isSlotAvailable);
 
   function getSlotDateKey(slot) {
-  if (slot.date) return toApiDateFilter(slot.date);
-  const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
+    if (slot.date) return toApiDateFilter(slot.date);
 
-  return toApiDateFilter(raw);
-}
+    const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
 
-function getSlotTimeLabel(slot) {
-  if (typeof slot.startTime === 'string' && /^\d{2}:\d{2}/.test(slot.startTime)) {
-    return slot.startTime.slice(0, 5);
+    return toApiDateFilter(raw);
   }
-  const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
 
-  return formatTimeAR(raw);
-}
+  function getSlotTimeLabel(slot) {
+    if (
+      typeof slot.startTime === 'string' &&
+      /^\d{2}:\d{2}/.test(slot.startTime)
+    ) {
+      return slot.startTime.slice(0, 5);
+    }
 
-const slotsByDate = weekDays.reduce((acc, day) => {
+    const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
+
+    return formatTimeAR(raw);
+  }
+
+  const slotsByDate = weekDays.reduce((acc, day) => {
     acc[day.dateKey] = availableSlots
       .filter((slot) => getSlotDateKey(slot) === day.dateKey)
-      .sort((a, b) =>
-        getSlotTimeLabel(a).localeCompare(getSlotTimeLabel(b))
-      );
+      .sort((a, b) => getSlotTimeLabel(a).localeCompare(getSlotTimeLabel(b)));
 
     return acc;
   }, {});
@@ -158,25 +159,26 @@ const slotsByDate = weekDays.reduce((acc, day) => {
                       No hay turnos disponibles para este día.
                     </p>
                   ) : (
-                   daySlots.map((slot) => {
-                     const slotId = getSlotId(slot);
-                     const isSelected = selectedSlot && getSlotId(selectedSlot) === slotId;
+                    daySlots.map((slot) => {
+                      const slotId = getSlotId(slot);
+                      const isSelected =
+                        selectedSlot && getSlotId(selectedSlot) === slotId;
 
                       return (
                         <button
                           key={slotId}
                           type="button"
                           onClick={() => onSelectSlot(slot)}
-      className={`w-full rounded-lg border px-2.5 py-2 text-xs font-semibold transition-colors ${
-        isSelected
-          ? 'bg-med-primary-900 text-white border-med-primary-900'
-          : 'bg-white text-med-text-main border-med-border hover:border-med-primary-600 hover:bg-med-primary-50/40'
-      }`}
-    >
-      {getSlotTimeLabel(slot)} hs
-    </button>
-  );
-})
+                          className={`w-full rounded-lg border px-2.5 py-2 text-xs font-semibold transition-colors ${
+                            isSelected
+                              ? 'bg-med-primary-900 text-white border-med-primary-900'
+                              : 'bg-white text-med-text-main border-med-border hover:border-med-primary-600 hover:bg-med-primary-50/40'
+                          }`}
+                        >
+                          {getSlotTimeLabel(slot)} hs
+                        </button>
+                      );
+                    })
                   )}
                 </div>
               </div>

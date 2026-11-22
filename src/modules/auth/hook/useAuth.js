@@ -1,14 +1,20 @@
 import { useContext } from 'react';
-import { AuthContext } from '../context/AuthProvider';
+import {
+  AuthActionsContext,
+  ProfileContext,
+  SessionContext,
+} from '../context/AuthProvider';
 
 const useAuth = () => {
-  const context = useContext(AuthContext);
+  const session = useContext(SessionContext);
+  const profile = useContext(ProfileContext);
+  const actions = useContext(AuthActionsContext);
 
-  if (!context) {
+  if (!session || !profile || !actions) {
     throw new Error('useAuth no debe ser usado por fuera de AuthProvider');
   }
 
-  return context;
+  return { ...session, ...profile, ...actions };
 };
 
 export default useAuth;
