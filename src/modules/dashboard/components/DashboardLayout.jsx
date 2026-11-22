@@ -141,7 +141,7 @@ function DashboardLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3.5 py-3 rounded-lg text-sm font-medium transition ${
                     isActive
-                      ? 'bg-med-primary-50 text-med-primary-900 border-r-4 border-med-primary-900'
+                      ? 'bg-med-primary-50 text-med-primary-900 border-l-4 border-med-primary-900'
                       : 'text-med-text-sub hover:bg-gray-50 hover:text-med-primary-900'
                   }`
                 }
@@ -206,11 +206,16 @@ function DashboardLayout() {
         <header className="sm:hidden bg-white border-b border-med-border px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-med-primary-900 text-white flex items-center justify-center font-bold text-xs">
-              MC
+              AP
             </div>
-            <span className="font-bold text-sm text-med-primary-900">
-              Medical Center
-            </span>
+            <div className="leading-tight">
+              <span className="block font-bold text-sm text-med-primary-900">
+                Admin Portal
+              </span>
+              <span className="block text-[10px] font-medium text-med-text-muted">
+                Healthcare Management
+              </span>
+            </div>
           </div>
           <button
             onClick={() => setOpenMobileMenu(!openMobileMenu)}
