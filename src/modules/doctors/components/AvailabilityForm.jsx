@@ -205,6 +205,7 @@ function AvailabilityForm({
         <Button
           type="button"
           variant="secondary"
+          disabled={saving}
           onClick={() => navigate('/admin/doctors')}
         >
           Cancelar
