@@ -94,6 +94,23 @@ function PatientLayout() {
               <span className="hidden sm:inline-block text-xs font-semibold text-med-text-main">
                 {email || 'Paciente'}
               </span>
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Verificado
+              </span>
             </div>
 
             <button
