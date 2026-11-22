@@ -9,14 +9,25 @@ let generation = 0;
 function serializeParams(params) {
   if (!params) return '';
 
-  return Object.keys(params)
+  const search = new URLSearchParams();
+
+  Object.keys(params)
     .sort()
-    .map((key) => `${key}=${params[key] ?? ''}`)
-    .join('&');
+    .forEach((key) => {
+      const value = params[key];
+
+      if (value !== undefined && value !== null && value !== '') {
+        search.append(key, String(value));
+      }
+    });
+
+  return search.toString();
 }
 
 export function buildCacheKey(url, params) {
-  return `${url}?${serializeParams(params)}`;
+  const query = serializeParams(params);
+
+  return query ? `${url}?${query}` : url;
 }
 
 export function clearCache() {
