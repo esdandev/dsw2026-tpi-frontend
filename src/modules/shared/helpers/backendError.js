@@ -47,6 +47,7 @@ const ISSUE_MESSAGES = {
   past_date: 'No se permiten fechas u horarios pasados.',
   overlap: 'El horario se superpone con otro existente.',
   license_already_registered: 'La matrícula ya está registrada.',
+  speciality_name_already_exists: 'Ya existe una especialidad con ese nombre.',
   doctor_slot_already_exists: 'Ya existe un bloque para ese horario.',
 };
 
