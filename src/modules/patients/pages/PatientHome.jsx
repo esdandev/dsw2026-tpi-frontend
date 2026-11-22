@@ -58,6 +58,7 @@ function getDoctorName(doc) {
     `Médico #${doc.id}`
   );
 }
+
 function getDoctorInitials(fullName) {
   const clean = fullName.replace(/^dra?\.\s*/i, '').trim();
   const parts = clean.split(/\s+/).filter(Boolean);
@@ -71,10 +72,9 @@ function getDoctorInitials(fullName) {
 
 function PatientHome() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const patientDni = user?.dni ||
-    localStorage.getItem('dni') ||
-    '';
+  const { dni, user } = useAuth();
+  const patientDni = dni || user?.dni || localStorage.getItem('dni') || '';
+
   const {
     bookAppointment,
     error: bookingError,
@@ -201,24 +201,21 @@ function PatientHome() {
     (doc) => String(doc.id) === String(selectedDoctorId)
   );
 
-   const selectedSlotStart =
+  const selectedSlotStart =
     selectedSlot?.startTime ||
     selectedSlot?.startAt ||
     selectedSlot?.dateTime ||
     selectedSlot?.start;
 
-const selectedSlotDateLabel = selectedSlot?.date
-  ? formatDateAR(selectedSlot.date)
-  : formatDateAR(selectedSlotStart);
+  const selectedSlotDateLabel = selectedSlot?.date
+    ? formatDateAR(selectedSlot.date)
+    : formatDateAR(selectedSlotStart);
 
-const selectedSlotTimeLabel =
-  typeof selectedSlot?.startTime === 'string' &&
-  /^\d{2}:\d{2}/.test(selectedSlot.startTime)
-    ? selectedSlot.startTime.slice(0, 5)
-    : formatTimeAR(selectedSlotStart);
-
-
- 
+  const selectedSlotTimeLabel =
+    typeof selectedSlot?.startTime === 'string' &&
+    /^\d{2}:\d{2}/.test(selectedSlot.startTime)
+      ? selectedSlot.startTime.slice(0, 5)
+      : formatTimeAR(selectedSlotStart);
 
   const handleConfirmAppointment = async () => {
     setLocalError('');
@@ -229,15 +226,22 @@ const selectedSlotTimeLabel =
 
       return;
     }
+
     const cleanDni = String(patientDni).replace(/\D/g, '');
-     if (cleanDni.length < 7 || cleanDni.length > 10) {
-     setLocalError('Tu sesión no tiene un DNI de paciente válido (7 a 10 dígitos). Iniciá sesión como paciente.');
-     return;
+    if (cleanDni.length < 7 || cleanDni.length > 10) {
+      setLocalError(
+        'Tu sesión no tiene un DNI de paciente válido (7 a 10 dígitos). Iniciá sesión como paciente.'
+      );
+
+      return;
     }
+
     const trimmedReason = reason.trim();
 
-    if (trimmedReason.length < 5) {
-      setReasonError('El motivo de consulta debe tener al menos 5 caracteres.');
+    if (trimmedReason.length < 5 || trimmedReason.length > 300) {
+      setReasonError(
+        'El motivo de consulta debe tener entre 5 y 300 caracteres.'
+      );
 
       return;
     }
@@ -263,7 +267,6 @@ const selectedSlotTimeLabel =
       setReason('');
       await refetchSlots();
     } else {
-      // Ante 409 (APPOINTMENT_CONFLICT / DOCTOR_INACTIVE) limpiar slot y recargar
       setSelectedSlot(null);
       await refetchSlots();
     }
@@ -332,8 +335,7 @@ const selectedSlotTimeLabel =
               )}
               {doctors.map((doc) => (
                 <option key={doc.id} value={doc.id}>
-                  
-                    {getDoctorName(doc)}
+                  {getDoctorName(doc)}
                 </option>
               ))}
             </select>
@@ -343,12 +345,11 @@ const selectedSlotTimeLabel =
         {selectedDoctor && (
           <div className="mt-4 flex items-center gap-3 rounded-xl border border-med-border bg-med-primary-50/40 p-3.5">
             <div className="w-10 h-10 rounded-full bg-med-primary-900 text-white flex items-center justify-center text-xs font-bold shrink-0">
-             {getDoctorInitials(getDoctorName(selectedDoctor))}
+              {getDoctorInitials(getDoctorName(selectedDoctor))}
             </div>
             <div>
               <p className="text-sm font-bold text-med-primary-900">
-                
-                  {getDoctorName(selectedDoctor)}
+                {getDoctorName(selectedDoctor)}
               </p>
               <p className="text-xs text-med-text-sub">
                 {selectedDoctor.specialty?.name ||
@@ -479,3 +480,4 @@ const selectedSlotTimeLabel =
 }
 
 export default PatientHome;
+

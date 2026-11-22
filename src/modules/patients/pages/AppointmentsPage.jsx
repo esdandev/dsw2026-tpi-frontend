@@ -26,18 +26,18 @@ function mapAppointmentStatus(status) {
   const normalized = String(status || '').toUpperCase();
 
   if (normalized === 'BOOKED') return 'Confirmado';
+  if (normalized === 'CANCELLED') return 'Cancelado';
+  if (normalized === 'ATTENDED') return 'Atendido';
+  if (normalized === 'NO_SHOW') return 'Ausente';
 
   return status || 'Confirmado';
 }
 
 function AppointmentsPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-const patientDni =
-    user?.dni ||
-    localStorage.getItem('dni') ||
-    '';
-    
+  const { dni, user } = useAuth();
+  const patientDni = dni || user?.dni || localStorage.getItem('dni') || '';
+
   const {
     appointments,
     loading,
@@ -51,7 +51,9 @@ const patientDni =
   const [actionError, setActionError] = useState('');
 
   const handleCancel = async (appt) => {
-    const rawDate = appt.startTime || appt.date || appt.slotDate;
+    const apptId = appt.id || appt.appointmentsId;
+    const rawDate =
+      appt.availableTime || appt.startTime || appt.date || appt.slotDate;
     const confirmed = window.confirm(
       `¿Confirmás la cancelación del turno con ${getDoctorDisplayName(appt)} del ${toApiDateFilter(rawDate)} a las ${formatTimeAR(rawDate)} hs?`
     );
@@ -59,8 +61,8 @@ const patientDni =
     if (!confirmed) return;
 
     setActionError('');
-    setCancellingId(appt.id);
-    const res = await cancelAppointment(appt.id);
+    setCancellingId(apptId);
+    const res = await cancelAppointment(apptId);
     setCancellingId(null);
 
     if (!res.ok) {
@@ -107,15 +109,20 @@ const patientDni =
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {appointments.map((appt) => {
-            const rawDate = appt.startTime || appt.date || appt.slotDate;
+            const apptId = appt.id || appt.appointmentsId;
+            const rawDate =
+              appt.availableTime || appt.startTime || appt.date || appt.slotDate;
             const specialtyName =
               appt.specialtyName || appt.specialty?.name || '';
-            const statusLabel = mapAppointmentStatus(appt.status);
-            const isCancelling = cancellingId === appt.id;
+            const rawStatus = appt.status || appt.appointmentsStatus;
+            const statusUpper = String(rawStatus || '').toUpperCase();
+            const isCancelled = statusUpper.includes('CANCEL');
+            const statusLabel = mapAppointmentStatus(rawStatus);
+            const isCancelling = cancellingId === apptId;
 
             return (
               <Card
-                key={appt.id}
+                key={apptId}
                 className="flex flex-col justify-between gap-4 p-6"
               >
                 <div>
@@ -128,7 +135,13 @@ const patientDni =
                       <span />
                     )}
 
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-med-active-bg text-med-active-text">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                        isCancelled
+                          ? 'bg-med-danger-bg text-med-danger-text'
+                          : 'bg-med-active-bg text-med-active-text'
+                      }`}
+                    >
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />
                       {statusLabel}
                     </span>
@@ -150,16 +163,18 @@ const patientDni =
                   </p>
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-med-border">
-                  <Button
-                    variant="outline"
-                    disabled={isCancelling}
-                    className="w-full text-xs"
-                    onClick={() => handleCancel(appt)}
-                  >
-                    {isCancelling ? 'Cancelando...' : 'Cancelar Turno'}
-                  </Button>
-                </div>
+                {!isCancelled && (
+                  <div className="flex gap-2 pt-3 border-t border-med-border">
+                    <Button
+                      variant="outline"
+                      disabled={isCancelling}
+                      className="w-full text-xs"
+                      onClick={() => handleCancel(appt)}
+                    >
+                      {isCancelling ? 'Cancelando...' : 'Cancelar Turno'}
+                    </Button>
+                  </div>
+                )}
               </Card>
             );
           })}

@@ -112,7 +112,7 @@ function SpecialtiesPage() {
           emptyDescription="Probá cambiando el filtro de búsqueda o agregá una nueva especialidad."
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="mobile-cards w-full text-left text-sm">
               <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
                 <tr>
                   <th className="px-6 py-3.5">Nombre de la Especialidad</th>
@@ -126,7 +126,7 @@ function SpecialtiesPage() {
                     key={spec.id}
                     className="hover:bg-gray-50/70 transition-colors"
                   >
-                    <td className="px-6 py-4">
+                    <td data-label="Especialidad" className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-med-primary-100 text-med-primary-700 flex items-center justify-center shrink-0 font-bold text-xs">
                           {spec.name?.slice(0, 2).toUpperCase()}
@@ -137,11 +137,14 @@ function SpecialtiesPage() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-med-text-sub max-w-md">
+                    <td
+                      data-label="Descripción"
+                      className="px-6 py-4 text-med-text-sub max-w-md"
+                    >
                       {spec.description}
                     </td>
 
-                    <td className="px-6 py-4 text-right">
+                    <td data-label="Acciones" className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 text-med-text-muted">
                         <button
                           type="button"

@@ -43,6 +43,10 @@ instance.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 403) {
+      window.dispatchEvent(new Event('api:access-denied'));
+    }
+
     return Promise.reject(error);
   }
 );

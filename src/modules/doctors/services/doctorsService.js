@@ -1,6 +1,13 @@
 import { instance as axiosInstance } from '../../shared/api/axiosInstance';
 
 export const doctorsService = {
+  async getSlots(doctorId, from, to) {
+    const { data } = await axiosInstance.get(`/api/doctors/${doctorId}/slots`, {
+      params: { from, to },
+    });
+
+    return data;
+  },
   async getAll({
     pageIndex = 0,
     pageSize = 10,

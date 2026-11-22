@@ -5,7 +5,9 @@ import useAuth from '../../auth/hook/useAuth';
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
   const navigate = useNavigate();
-  const { singout } = useAuth();
+  const { singout, email, role } = useAuth();
+
+  const adminInitials = email?.slice(0, 2).toUpperCase() || 'AD';
 
   const handleLogout = () => {
     singout();
@@ -108,6 +110,14 @@ function DashboardLayout() {
         <div>
           {/* Brand Logo Header */}
           <div className="p-6 border-b border-med-border-subtle">
+            <button
+              type="button"
+              className="sm:hidden float-right text-sm font-semibold text-med-primary-900"
+              onClick={() => setOpenMobileMenu(false)}
+              aria-label="Cerrar menú administrativo"
+            >
+              Cerrar ✕
+            </button>
             <h2 className="text-base font-bold text-med-primary-900 leading-tight">
               Admin Portal
             </h2>
@@ -163,14 +173,14 @@ function DashboardLayout() {
           {/* User Profile Info */}
           <div className="pt-3 border-t border-med-border flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-med-primary-100 text-med-primary-900 flex items-center justify-center font-bold text-xs">
-              AD
+              {adminInitials}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-semibold text-med-text-main truncate">
-                Admin User
+                {email || 'Administrador'}
               </p>
               <p className="text-[11px] text-med-text-muted truncate">
-                Super Administrator
+                {role === 'ADMINISTRADOR' ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
           </div>
@@ -199,6 +209,13 @@ function DashboardLayout() {
           </div>
           <button
             onClick={() => setOpenMobileMenu(!openMobileMenu)}
+            type="button"
+            aria-label={
+              openMobileMenu
+                ? 'Cerrar menú administrativo'
+                : 'Abrir menú administrativo'
+            }
+            aria-expanded={openMobileMenu}
             className="p-1.5 rounded-lg border border-med-border text-med-text-sub"
           >
             <svg

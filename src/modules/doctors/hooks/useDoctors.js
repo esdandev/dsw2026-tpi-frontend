@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { doctorsService } from '../services/doctorsService';
 import { parseBackendError } from '../../shared/helpers/backendError';
 
@@ -13,8 +13,11 @@ export function useDoctors({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const requestId = useRef(0);
 
   const fetchDoctors = useCallback(async () => {
+    const currentRequest = ++requestId.current;
+
     setLoading(true);
     setError(null);
     try {
@@ -32,12 +35,16 @@ export function useDoctors({
 
       setError(parsed.message);
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, [pageIndex, pageSize, name, specialtyId]);
 
   useEffect(() => {
     fetchDoctors();
+
+    return () => {
+      requestId.current += 1;
+    };
   }, [fetchDoctors]);
 
   const createDoctor = async (payload) => {

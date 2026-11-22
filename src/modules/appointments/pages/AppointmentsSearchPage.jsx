@@ -3,11 +3,14 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
 import TablePagination from '../../shared/components/TablePagination';
-import { formatDateAR, formatTimeAR, toApiDateFilter, } from '../../shared/helpers/dateArgentina';
+import {
+  formatDateAR,
+  formatTimeAR,
+  toApiDateFilter,
+} from '../../shared/helpers/dateArgentina';
 import { useAppointmentsSearch } from '../hooks/useAppointments';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
-
 
 const STATUS_UI = {
   BOOKED: {
@@ -115,19 +118,19 @@ function AppointmentsSearchPage() {
   };
 
   const handleClearFilters = () => {
-  setDniInput('');
-  setSpecialtyInput('');
-  setDoctorInput('');
-  setDateInput(todayAR);
-  setAppliedFilters((prev) => ({
-    ...prev,
-    dni: '',
-    specialtyId: '',
-    doctorId: '',
-    date: todayAR,
-    pageIndex: 0,
-  }));
-};
+    setDniInput('');
+    setSpecialtyInput('');
+    setDoctorInput('');
+    setDateInput(todayAR);
+    setAppliedFilters((prev) => ({
+      ...prev,
+      dni: '',
+      specialtyId: '',
+      doctorId: '',
+      date: todayAR,
+      pageIndex: 0,
+    }));
+  };
 
   const handlePageChange = (newPage) => {
     setAppliedFilters((prev) => ({
@@ -287,7 +290,7 @@ function AppointmentsSearchPage() {
           emptyDescription="Probá ajustando los filtros de búsqueda."
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="mobile-cards w-full text-left text-sm">
               <thead className="bg-med-primary-50/70 text-[11px] uppercase tracking-wider text-med-text-sub border-b border-med-border">
                 <tr>
                   <th className="px-6 py-3.5">Fecha y Hora (AR)</th>
@@ -341,16 +344,16 @@ function AppointmentsSearchPage() {
                     '-';
 
                   const rowKey = item.appointmentsId || item.id;
-const statusDisplay = getStatusDisplay(
-  item.appointmentsStatus || item.status
-);
+                  const statusDisplay = getStatusDisplay(
+                    item.appointmentsStatus || item.status
+                  );
 
                   return (
                     <tr
                       key={rowKey}
                       className="hover:bg-gray-50/70 transition-colors"
                     >
-                      <td className="px-6 py-4">
+                      <td data-label="Fecha y hora" className="px-6 py-4">
                         <p className="font-bold text-med-primary-900 text-sm">
                           {dateLabel}
                         </p>
@@ -359,7 +362,10 @@ const statusDisplay = getStatusDisplay(
                         </p>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td
+                        data-label="Especialidad y médico"
+                        className="px-6 py-4"
+                      >
                         <p className="font-semibold text-med-primary-900">
                           {specialtyLabel}
                         </p>
@@ -368,7 +374,7 @@ const statusDisplay = getStatusDisplay(
                         </p>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td data-label="Paciente" className="px-6 py-4">
                         <p className="font-semibold text-med-text-main">
                           {patientPrimary}
                         </p>
@@ -377,7 +383,7 @@ const statusDisplay = getStatusDisplay(
                         </p>
                       </td>
 
-                      <td className="px-6 py-4 text-center">
+                      <td data-label="Estado" className="px-6 py-4 text-center">
                         <span
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusDisplay.badgeClass}`}
                         >
