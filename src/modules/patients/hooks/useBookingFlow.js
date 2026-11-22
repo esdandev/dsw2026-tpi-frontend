@@ -239,6 +239,24 @@ export function useBookingFlow(patientDni) {
       ? selectedSlot.startTime.slice(0, 5)
       : formatTimeAR(selectedSlotStart);
 
+  // Todo lo que necesita el resumen viaja junto: el que dibuja no recalcula nada.
+  const slotSummary =
+    selectedSlot && selectedSlotStart
+      ? {
+          start: selectedSlotStart,
+          dateLabel: selectedSlotDateLabel,
+          timeLabel: selectedSlotTimeLabel,
+          specialtyLabel:
+            selectedDoctor?.specialty?.name ||
+            specialties.find(
+              (specialty) =>
+                String(specialty.id) === String(selectedSpecialtyId)
+            )?.name ||
+            '',
+          doctorLabel: getDoctorName(selectedDoctor),
+        }
+      : null;
+
   function selectSpecialty(specialtyId) {
     setSelectedSpecialtyId(specialtyId);
     setSuccessMessage('');
@@ -345,9 +363,7 @@ export function useBookingFlow(patientDni) {
     refetchSlots,
     selectedSlot,
     selectSlot,
-    selectedSlotStart,
-    selectedSlotDateLabel,
-    selectedSlotTimeLabel,
+    slotSummary,
     reason,
     setReason,
     reasonError,

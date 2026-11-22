@@ -40,9 +40,7 @@ function PatientHome() {
     refetchSlots,
     selectedSlot,
     selectSlot,
-    selectedSlotStart,
-    selectedSlotDateLabel,
-    selectedSlotTimeLabel,
+    slotSummary,
     reason,
     setReason,
     reasonError,
@@ -195,16 +193,7 @@ function PatientHome() {
           if (reasonError) clearReasonError();
         }}
         submitting={submitting}
-        hasSelectedSlot={Boolean(selectedSlot)}
-        selectedSlotStart={selectedSlotStart}
-        specialtyLabel={
-          selectedDoctor?.specialty?.name ||
-          specialties.find((s) => String(s.id) === String(selectedSpecialtyId))
-            ?.name
-        }
-        doctorLabel={getDoctorName(selectedDoctor)}
-        dateLabel={selectedSlotDateLabel}
-        timeLabel={selectedSlotTimeLabel}
+        slotSummary={slotSummary}
         onConfirm={confirmAppointment}
         onGoAppointments={() => navigate('/appointments')}
       />
