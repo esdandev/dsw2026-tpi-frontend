@@ -24,9 +24,17 @@ const STATUS_DISPLAY = {
 export function getAppointmentStatusDisplay(status) {
   const key = String(status || '').toUpperCase();
 
+  if (!key) {
+    return {
+      label: 'Sin estado',
+      badgeClass: 'bg-slate-100 text-slate-700',
+      dotClass: 'bg-slate-500',
+    };
+  }
+
   return (
     STATUS_DISPLAY[key] || {
-      label: status || 'Confirmado',
+      label: status,
       badgeClass: 'bg-slate-100 text-slate-700',
       dotClass: 'bg-slate-500',
     }
