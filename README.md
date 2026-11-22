@@ -121,9 +121,9 @@ src/
   - **Email:** `admin@utn.com`
   - **Contraseña:** `[Contraseña configurada en el backend]`
 - **Paciente:**
-  - **Email:** `maia@gmail.com`
-  - **DNI:** `12345678`
-  - **Contraseña:** `[Contraseña configurada en el backend]` *(o registrar un paciente nuevo desde `/register`)*
+  - **Email:** `paciente@gmail.com`
+  - **DNI:** `12345677`
+  - (o registrar un paciente nuevo desde `/register`)*
 
 ### Flujo recomendado de prueba
 
