@@ -1,12 +1,11 @@
 import { instance as axiosInstance } from '../../shared/api/axiosInstance';
+import { getCached, invalidateByPrefix } from '../../shared/api/cache';
 
 export const doctorsService = {
   async getSlots(doctorId, from, to) {
-    const { data } = await axiosInstance.get(`/api/doctors/${doctorId}/slots`, {
+    return getCached(axiosInstance, `/api/doctors/${doctorId}/slots`, {
       params: { from, to },
     });
-
-    return data;
   },
   async getAll({
     pageIndex = 0,
@@ -20,9 +19,7 @@ export const doctorsService = {
 
     if (specialtyId) params.specialtyId = specialtyId;
 
-    const { data } = await axiosInstance.get('/api/doctors', { params });
-
-    return data;
+    return getCached(axiosInstance, '/api/doctors', { params });
   },
 
   async getAllForSelect({ specialtyId = '' } = {}) {
@@ -50,18 +47,24 @@ export const doctorsService = {
   },
 
   async create(payload) {
+    invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     const { data } = await axiosInstance.post('/api/doctors', payload);
 
     return data;
   },
 
   async update(id, payload) {
+    invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     const { data } = await axiosInstance.put(`/api/doctors/${id}`, payload);
 
     return data;
   },
 
   async remove(id) {
+    invalidateByPrefix('/api/doctors');
+    invalidateByPrefix('/api/appointments');
     await axiosInstance.delete(`/api/doctors/${id}`);
   },
 };

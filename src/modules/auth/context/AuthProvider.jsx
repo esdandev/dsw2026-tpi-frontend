@@ -2,6 +2,7 @@ import { createContext, useCallback, useMemo, useState } from 'react';
 import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
 import { ROLES } from '../constants';
+import { clearCache } from '../../shared/api/cache';
 import {
   SESSION_FIELDS,
   clearSession,
@@ -24,6 +25,7 @@ function AuthProvider({ children }) {
 
   const singout = useCallback(() => {
     clearSession();
+    clearCache();
 
     setIsAuthenticated(false);
     setRole(null);
@@ -32,6 +34,7 @@ function AuthProvider({ children }) {
   }, []);
 
   const setAuthSession = useCallback((token, userRole, userData = null) => {
+    clearCache();
     saveSession(SESSION_FIELDS.TOKEN, token);
     saveSession(SESSION_FIELDS.ROLE, userRole);
 

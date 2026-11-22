@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
 import DataTable from '../../shared/components/DataTable';
+import SearchInput from '../../shared/components/SearchInput';
+import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue';
 import TablePagination from '../../shared/components/TablePagination';
 import { useSpecialties } from '../hooks/useSpecialties';
 
 function SpecialtiesPage() {
   const navigate = useNavigate();
+  const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
   const pageSize = 10;
@@ -27,12 +30,15 @@ function SpecialtiesPage() {
     name: searchTerm,
   });
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  // Filtra mientras se escribe, con el mismo debounce que el directorio de médicos.
+  const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+  useEffect(() => {
+    setSearchTerm(debouncedSearch.trim());
     setPageIndex(0);
-  };
+  }, [debouncedSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handleDelete = async (spec) => {
     const confirmed = window.confirm(
@@ -60,30 +66,13 @@ function SpecialtiesPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Buscador */}
-          <div className="relative min-w-[240px] flex-1 sm:flex-initial">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-med-text-muted">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Buscar especialidad..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-med-border rounded-lg text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-1 focus:ring-med-primary-600"
-            />
-          </div>
+          <SearchInput
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            placeholder="Buscar especialidad..."
+            ariaLabel="Buscar especialidad"
+            className="flex-1 sm:flex-initial"
+          />
 
           {/* Botón Nueva Especialidad */}
           <Button
@@ -171,7 +160,8 @@ function SpecialtiesPage() {
                       <button
                         type="button"
                         title="Eliminar especialidad"
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
+                        aria-label={`Eliminar ${spec.name}`}
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-med-danger-text hover:text-red-700 transition"
                         onClick={() => handleDelete(spec)}
                       >
                         <svg

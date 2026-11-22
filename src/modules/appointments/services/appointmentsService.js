@@ -1,4 +1,5 @@
 import { instance as axiosInstance } from '../../shared/api/axiosInstance';
+import { getCached, invalidateByPrefix } from '../../shared/api/cache';
 import { toApiDateFilter } from '../../shared/helpers/dateArgentina';
 
 function normalizePagedAppointments(raw, pageIndex, pageSize) {
@@ -35,7 +36,9 @@ export const appointmentsService = {
       date: toApiDateFilter(date || new Date()),
     };
 
-    const { data } = await axiosInstance.get('/api/appointments', { params });
+    const data = await getCached(axiosInstance, '/api/appointments', {
+      params,
+    });
 
     return normalizePagedAppointments(data, pageIndex, pageSize);
   },
@@ -65,7 +68,7 @@ export const appointmentsService = {
 
     if (date) params.date = toApiDateFilter(date);
 
-    const { data } = await axiosInstance.get('/api/appointments/search', {
+    const data = await getCached(axiosInstance, '/api/appointments/search', {
       params,
     });
 
@@ -73,7 +76,7 @@ export const appointmentsService = {
   },
 
   async getByPatientDni(dni) {
-    const { data } = await axiosInstance.get('/api/appointments/patient', {
+    const data = await getCached(axiosInstance, '/api/appointments/patient', {
       params: { dni },
     });
 
@@ -81,6 +84,8 @@ export const appointmentsService = {
   },
 
   async book(bookingInput) {
+    invalidateByPrefix('/api/appointments');
+    invalidateByPrefix('/api/doctors');
     const cleanDni = Number(
       String(
         bookingInput.patientDni ?? bookingInput.patient?.dni ?? ''
@@ -102,6 +107,8 @@ export const appointmentsService = {
   },
 
   async cancel(appointmentId) {
+    invalidateByPrefix('/api/appointments');
+    invalidateByPrefix('/api/doctors');
     await axiosInstance.delete(`/api/appointments/${appointmentId}`);
   },
 };

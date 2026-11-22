@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../shared/components/Button';
 import AvailabilityTable from './AvailabilityTable';
 
@@ -102,6 +103,7 @@ function AvailabilityForm({
   onSave,
   onEdited,
 }) {
+  const navigate = useNavigate();
   const [schedule, setSchedule] = useState(() =>
     buildSchedule(initialAvailabilities)
   );
@@ -202,11 +204,20 @@ function AvailabilityForm({
       <div className="flex flex-wrap justify-end gap-3">
         <Button
           type="button"
+          variant="secondary"
+          disabled={saving}
+          onClick={() => navigate('/admin/doctors')}
+        >
+          Cancelar
+        </Button>
+
+        <Button
+          type="button"
           variant="outline"
           disabled={saving}
           onClick={resetForm}
         >
-          Descartar cambios
+          Restablecer
         </Button>
 
         <Button type="submit" disabled={saving} className="disabled:opacity-50">
