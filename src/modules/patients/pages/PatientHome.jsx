@@ -228,6 +228,7 @@ function PatientHome() {
     }
 
     const cleanDni = String(patientDni).replace(/\D/g, '');
+
     if (cleanDni.length < 7 || cleanDni.length > 10) {
       setLocalError(
         'Tu sesión no tiene un DNI de paciente válido (7 a 10 dígitos). Iniciá sesión como paciente.'
@@ -480,4 +481,3 @@ function PatientHome() {
 }
 
 export default PatientHome;
-

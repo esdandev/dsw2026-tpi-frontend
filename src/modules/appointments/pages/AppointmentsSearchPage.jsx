@@ -3,11 +3,7 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
 import TablePagination from '../../shared/components/TablePagination';
-import {
-  formatDateAR,
-  formatTimeAR,
-  toApiDateFilter,
-} from '../../shared/helpers/dateArgentina';
+import { formatDateAR, formatTimeAR } from '../../shared/helpers/dateArgentina';
 import { useAppointmentsSearch } from '../hooks/useAppointments';
 import { specialtiesService } from '../../specialties/services/specialtiesService';
 import { doctorsService } from '../../doctors/services/doctorsService';
@@ -49,9 +45,11 @@ function getStatusDisplay(status) {
 
 function cleanPlaceholderValue(value) {
   if (!value) return '';
+
   const trimmed = String(value).trim();
- 
+
   if (/^(string\s*)+$/i.test(trimmed)) return '';
+
   return trimmed;
 }
 
@@ -125,7 +123,7 @@ function AppointmentsSearchPage() {
   };
 
   const handleClearFilters = () => {
-   setDniInput('');
+    setDniInput('');
     setSpecialtyInput('');
     setDoctorInput('');
     setDateInput('');
@@ -336,23 +334,21 @@ function AppointmentsSearchPage() {
                     '-';
 
                   const rawPatientName =
-  item.patient?.fullName ||
-  item.patientFullName ||
-  item.patientName ||
-  item.patient?.name;
+                    item.patient?.fullName ||
+                    item.patientFullName ||
+                    item.patientName ||
+                    item.patient?.name;
 
-const rawPatientEmail = item.patient?.email || item.patientEmail;
+                  const rawPatientEmail =
+                    item.patient?.email || item.patientEmail;
 
-const patientPrimary =
-  cleanPlaceholderValue(rawPatientName) ||
-  cleanPlaceholderValue(rawPatientEmail) ||
-  'Paciente';
+                  const patientPrimary =
+                    cleanPlaceholderValue(rawPatientName) ||
+                    cleanPlaceholderValue(rawPatientEmail) ||
+                    'Paciente';
 
                   const patientDni =
-                    item.patient?.dni ||
-                    item.patientDni ||
-                    item.dni ||
-                    '-';
+                    item.patient?.dni || item.patientDni || item.dni || '-';
 
                   const rowKey = item.appointmentsId || item.id;
                   const statusDisplay = getStatusDisplay(

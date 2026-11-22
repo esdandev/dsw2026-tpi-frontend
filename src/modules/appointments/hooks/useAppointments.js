@@ -140,7 +140,6 @@ export function usePatientAppointments(dni) {
   };
 }
 
-
 export function useAdminAppointments({ pageSize = 10 } = {}) {
   const [appointments, setAppointments] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -161,9 +160,9 @@ export function useAdminAppointments({ pageSize = 10 } = {}) {
 
       const hasSearchFilters = Boolean(
         currentFilters.dni?.trim() ||
-          currentFilters.specialtyId ||
-          currentFilters.doctorId ||
-          currentFilters.date
+        currentFilters.specialtyId ||
+        currentFilters.doctorId ||
+        currentFilters.date
       );
 
       try {
@@ -186,6 +185,7 @@ export function useAdminAppointments({ pageSize = 10 } = {}) {
         setPageIndex(nextPage);
       } catch (err) {
         const normalized = parseBackendError(err);
+
         setError(normalized.message || 'No se pudieron cargar los turnos.');
         setAppointments([]);
         setTotalCount(0);
@@ -207,12 +207,14 @@ export function useAdminAppointments({ pageSize = 10 } = {}) {
 
   const resetFilters = () => {
     const empty = { dni: '', specialtyId: '', doctorId: '', date: '' };
+
     setFilters(empty);
     fetchAppointments(1, empty);
   };
 
   const goToPage = (nextPage) => {
     if (nextPage < 1) return;
+
     fetchAppointments(nextPage, filters);
   };
 

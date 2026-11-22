@@ -29,8 +29,8 @@ export default defineConfig([
       semi: ['error', 'always'],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      // regla para respetar la tabulación
-      indent: ['error', 2, { SwitchCase: 1 }],
+      // El formato lo define Prettier (.prettierrc): no repetir reglas de estilo acá,
+      // la regla indent entraba en conflicto y el fix quedaba en ciclo.
       // regla para usar comillas simples
       quotes: ['error', 'single', { avoidEscape: true }],
       // regla para el uso de punto y coma al final de las líneas
