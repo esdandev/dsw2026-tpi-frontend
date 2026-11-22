@@ -11,6 +11,8 @@ function BookingConfirmCard({
   submitting,
   hasSelectedSlot,
   selectedSlotStart,
+  specialtyLabel,
+  doctorLabel,
   dateLabel,
   timeLabel,
   onConfirm,
@@ -60,28 +62,58 @@ function BookingConfirmCard({
       </div>
 
       {/* Barra de resumen y botón Confirmar Turno */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-med-border">
-        <div className="text-xs sm:text-sm text-med-text-sub">
-          {hasSelectedSlot && selectedSlotStart ? (
-            <span>
-              Turno seleccionado:{' '}
-              <strong className="text-med-primary-900">{dateLabel}</strong> a
-              las{' '}
-              <strong className="text-med-primary-900">{timeLabel} hs</strong>
-            </span>
-          ) : (
-            <span>Ningún horario seleccionado todavía.</span>
-          )}
-        </div>
+      <div className="flex flex-col gap-4 pt-4 border-t border-med-border">
+        {hasSelectedSlot && selectedSlotStart ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-med-border rounded-xl border border-med-border bg-med-primary-50/40">
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+                Especialidad
+              </p>
+              <p className="text-xs font-semibold text-med-primary-900 truncate">
+                {specialtyLabel || '—'}
+              </p>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+                Profesional
+              </p>
+              <p className="text-xs font-semibold text-med-primary-900 truncate">
+                {doctorLabel || '—'}
+              </p>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+                Fecha
+              </p>
+              <p className="text-xs font-semibold text-med-primary-900">
+                {dateLabel}
+              </p>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+                Hora
+              </p>
+              <p className="text-xs font-semibold text-med-primary-900">
+                {timeLabel} hs
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs sm:text-sm text-med-text-sub">
+            Ningún horario seleccionado todavía.
+          </p>
+        )}
 
-        <Button
-          type="button"
-          disabled={!hasSelectedSlot || submitting}
-          onClick={onConfirm}
-          className="bg-med-primary-900 hover:bg-med-primary-800 text-white disabled:opacity-50"
-        >
-          {submitting ? 'Confirmando...' : 'Confirmar Turno'}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            disabled={!hasSelectedSlot || submitting}
+            onClick={onConfirm}
+            className="bg-med-primary-900 hover:bg-med-primary-800 text-white disabled:opacity-50"
+          >
+            {submitting ? 'Confirmando...' : 'Confirmar Turno'}
+          </Button>
+        </div>
       </div>
     </Card>
   );

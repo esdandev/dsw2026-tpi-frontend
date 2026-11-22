@@ -174,6 +174,12 @@ function PatientHome() {
         submitting={submitting}
         hasSelectedSlot={Boolean(selectedSlot)}
         selectedSlotStart={selectedSlotStart}
+        specialtyLabel={
+          selectedDoctor?.specialty?.name ||
+          specialties.find((s) => String(s.id) === String(selectedSpecialtyId))
+            ?.name
+        }
+        doctorLabel={getDoctorName(selectedDoctor)}
         dateLabel={selectedSlotDateLabel}
         timeLabel={selectedSlotTimeLabel}
         onConfirm={confirmAppointment}
