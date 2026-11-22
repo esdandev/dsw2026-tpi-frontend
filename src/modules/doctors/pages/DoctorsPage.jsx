@@ -4,6 +4,7 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import DataTable from '../../shared/components/DataTable';
 import SearchInput from '../../shared/components/SearchInput';
+import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue';
 import StatusPill from '../../shared/components/StatusPill';
 import { useDoctors } from '../hooks/useDoctors';
 
@@ -23,14 +24,12 @@ function DoctorsPage() {
   });
 
   // Filtra mientras se escribe, con un debounce para no disparar una request por tecla.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setNameFilter(searchInput.trim());
-      setPageIndex(0);
-    }, 300);
+  const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  useEffect(() => {
+    setNameFilter(debouncedSearch.trim());
+    setPageIndex(0);
+  }, [debouncedSearch]);
 
   // Eliminar médico con confirmación previa
   const handleDelete = async (doctor) => {

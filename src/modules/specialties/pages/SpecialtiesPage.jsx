@@ -5,6 +5,7 @@ import Button from '../../shared/components/Button';
 import AsyncState from '../../shared/components/AsyncState';
 import DataTable from '../../shared/components/DataTable';
 import SearchInput from '../../shared/components/SearchInput';
+import { useDebouncedValue } from '../../shared/hooks/useDebouncedValue';
 import TablePagination from '../../shared/components/TablePagination';
 import { useSpecialties } from '../hooks/useSpecialties';
 
@@ -30,14 +31,12 @@ function SpecialtiesPage() {
   });
 
   // Filtra mientras se escribe, con el mismo debounce que el directorio de médicos.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchTerm(searchInput.trim());
-      setPageIndex(0);
-    }, 300);
+  const debouncedSearch = useDebouncedValue(searchInput, 300);
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  useEffect(() => {
+    setSearchTerm(debouncedSearch.trim());
+    setPageIndex(0);
+  }, [debouncedSearch]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
