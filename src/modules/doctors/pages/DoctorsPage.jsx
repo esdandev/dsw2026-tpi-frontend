@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
@@ -14,7 +14,6 @@ function DoctorsPage() {
   const [searchInput, setSearchInput] = useState('');
   const [nameFilter, setNameFilter] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
-  const [searchError, setSearchError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const { doctors, total, loading, error, removeDoctor, refetch } = useDoctors({
     pageSize: PAGE_SIZE,
@@ -22,22 +21,15 @@ function DoctorsPage() {
     name: nameFilter,
   });
 
-  // Buscar médicos por nombre
-  const handleSearch = (event) => {
-    event.preventDefault();
+  // Filtra mientras se escribe, con un debounce para no disparar una request por tecla.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNameFilter(searchInput.trim());
+      setPageIndex(0);
+    }, 300);
 
-    const normalizedName = searchInput.trim();
-
-    if (normalizedName && normalizedName.length < 3) {
-      setSearchError('Ingresá al menos 3 caracteres para buscar por nombre.');
-
-      return;
-    }
-
-    setPageIndex(0);
-    setNameFilter(normalizedName);
-    setSearchError('');
-  };
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Eliminar médico con confirmación previa
   const handleDelete = async (doctor) => {
@@ -79,18 +71,15 @@ function DoctorsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Buscador */}
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <input
-              type="search"
-              placeholder="Buscar por nombre..."
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              className="min-w-[200px] px-3 py-2 text-sm bg-white border border-med-border rounded-lg focus:outline-none focus:ring-2 focus:ring-med-primary-600"
-            />
-
-            <Button type="submit">Buscar</Button>
-          </form>
+          {/* Buscador: filtra mientras se escribe */}
+          <input
+            type="search"
+            aria-label="Buscar por nombre"
+            placeholder="Buscar por nombre..."
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            className="min-w-[200px] px-3 py-2 text-sm bg-white border border-med-border rounded-lg focus:outline-none focus:ring-2 focus:ring-med-primary-600"
+          />
 
           {/* Alta de médico */}
           <Button onClick={() => navigate('/admin/doctors/new')}>
@@ -100,9 +89,9 @@ function DoctorsPage() {
       </div>
 
       {/* Mensajes de error */}
-      {(searchError || error) && (
+      {error && (
         <p role="alert" className="text-sm text-red-600">
-          {searchError || error}
+          {error}
         </p>
       )}
       {error && (
