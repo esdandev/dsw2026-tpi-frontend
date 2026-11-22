@@ -147,6 +147,29 @@ function SpecialtiesPage() {
                     <div className="flex items-center justify-end gap-2 text-med-text-muted">
                       <button
                         type="button"
+                        title="Editar especialidad"
+                        aria-label={`Editar ${spec.name}`}
+                        className="p-1.5 rounded-lg hover:bg-med-primary-50 text-med-text-muted hover:text-med-primary-900 transition"
+                        onClick={() =>
+                          navigate(`/admin/specialties/${spec.id}/edit`)
+                        }
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-1.414a2 2 0 01.586-1.414zM5 21h14"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
                         title="Eliminar especialidad"
                         className="p-1.5 rounded-lg hover:bg-red-50 text-med-text-muted hover:text-med-danger-text transition"
                         onClick={() => handleDelete(spec)}

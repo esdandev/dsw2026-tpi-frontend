@@ -154,6 +154,12 @@ function DoctorsPage() {
                 <>
                   <Button
                     variant="outline"
+                    onClick={() => navigate(`/admin/doctors/${doctor.id}/edit`)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
                     className="text-xs text-red-600 hover:bg-red-50"
                     disabled={deletingId !== null}
                     onClick={() => handleDelete(doctor)}
