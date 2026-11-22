@@ -66,12 +66,6 @@ function DoctorEditPage() {
     event.preventDefault();
     setError('');
 
-    if (!name.trim() || !licenseNumber.trim() || !specialtyId) {
-      setError('Completá nombre, matrícula y especialidad.');
-
-      return;
-    }
-
     setSubmitting(true);
 
     try {

@@ -57,26 +57,6 @@ function DoctorCreatePage() {
     const cleanName = name.trim();
     const cleanLicense = licenseNumber.trim();
 
-    if (cleanName.length < 3 || cleanName.length > 100) {
-      setErrorMessage('El nombre debe tener entre 3 y 100 caracteres.');
-
-      return;
-    }
-
-    if (!cleanLicense || cleanLicense.length > 50) {
-      setErrorMessage(
-        'La licencia médica es obligatoria y admite hasta 50 caracteres.'
-      );
-
-      return;
-    }
-
-    if (!specialtyId) {
-      setErrorMessage('Seleccioná una especialidad.');
-
-      return;
-    }
-
     setSaving(true);
     setErrorMessage('');
     setFieldErrors({});
