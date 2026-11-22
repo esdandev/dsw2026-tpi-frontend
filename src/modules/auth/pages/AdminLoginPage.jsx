@@ -92,7 +92,10 @@ function AdminLoginPage() {
           >
             {/* Correo Electrónico */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-med-text-main">
+              <label
+                htmlFor="admin-email"
+                className="text-xs font-semibold text-med-text-main"
+              >
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -112,7 +115,9 @@ function AdminLoginPage() {
                   </svg>
                 </span>
                 <input
+                  id="admin-email"
                   type="email"
+                  aria-invalid={errors.email ? 'true' : undefined}
                   placeholder="admin@medportal.com"
                   className={`w-full border rounded-lg pl-10 pr-3.5 py-2.5 text-sm bg-white text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-2 focus:ring-med-primary-600 focus:border-transparent ${
                     errors.email
@@ -129,7 +134,7 @@ function AdminLoginPage() {
                 />
               </div>
               {errors.email && (
-                <p className="text-xs text-red-500 font-medium">
+                <p role="alert" className="text-xs text-red-500 font-medium">
                   {errors.email.message}
                 </p>
               )}
@@ -137,7 +142,10 @@ function AdminLoginPage() {
 
             {/* Contraseña */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-med-text-main">
+              <label
+                htmlFor="admin-password"
+                className="text-xs font-semibold text-med-text-main"
+              >
                 Contraseña
               </label>
               <div className="relative">
@@ -157,7 +165,9 @@ function AdminLoginPage() {
                   </svg>
                 </span>
                 <input
+                  id="admin-password"
                   type={showPassword ? 'text' : 'password'}
+                  aria-invalid={errors.password ? 'true' : undefined}
                   placeholder="••••••••"
                   className={`w-full border rounded-lg pl-10 pr-10 py-2.5 text-sm bg-white text-med-text-main placeholder-med-text-muted focus:outline-none focus:ring-2 focus:ring-med-primary-600 focus:border-transparent ${
                     errors.password
@@ -221,7 +231,7 @@ function AdminLoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-500 font-medium">
+                <p role="alert" className="text-xs text-red-500 font-medium">
                   {errors.password.message}
                 </p>
               )}

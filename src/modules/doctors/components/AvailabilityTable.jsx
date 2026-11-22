@@ -63,11 +63,15 @@ function AvailabilityTable({
                       className="flex flex-wrap items-end gap-3"
                     >
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs text-med-text-sub">
+                        <label
+                          htmlFor={`${day.code}-${index}-start`}
+                          className="text-xs text-med-text-sub"
+                        >
                           Entrada
                         </label>
 
                         <input
+                          id={`${day.code}-${index}-start`}
                           type="time"
                           value={range.startTime}
                           disabled={saving}
@@ -84,11 +88,15 @@ function AvailabilityTable({
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs text-med-text-sub">
+                        <label
+                          htmlFor={`${day.code}-${index}-end`}
+                          className="text-xs text-med-text-sub"
+                        >
                           Salida
                         </label>
 
                         <input
+                          id={`${day.code}-${index}-end`}
                           type="time"
                           value={range.endTime}
                           disabled={saving}

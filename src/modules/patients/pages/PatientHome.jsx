@@ -68,10 +68,14 @@ function PatientHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-main">
+            <label
+              htmlFor="booking-specialty"
+              className="text-xs font-semibold text-med-text-main"
+            >
               Especialidad Médica
             </label>
             <select
+              id="booking-specialty"
               value={selectedSpecialtyId}
               disabled={loadingSpecialties}
               onChange={(e) => selectSpecialty(e.target.value)}
@@ -90,10 +94,14 @@ function PatientHome() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-main">
+            <label
+              htmlFor="booking-doctor"
+              className="text-xs font-semibold text-med-text-main"
+            >
               Profesional
             </label>
             <select
+              id="booking-doctor"
               value={selectedDoctorId}
               disabled={loadingDoctors || doctors.length === 0}
               onChange={(e) => selectDoctor(e.target.value)}

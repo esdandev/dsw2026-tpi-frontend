@@ -121,7 +121,10 @@ function SpecialtyCreatePage() {
       {/* Formulario */}
       <Card className="p-6 border-med-border">
         {error && !isDuplicateError && (
-          <p className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
+          <p
+            role="alert"
+            className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700"
+          >
             {error}
           </p>
         )}
@@ -158,10 +161,14 @@ function SpecialtyCreatePage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-med-text-main">
+            <label
+              htmlFor="specialty-description"
+              className="text-xs font-semibold text-med-text-main"
+            >
               Descripción
             </label>
             <textarea
+              id="specialty-description"
               rows={4}
               placeholder="Detalle el alcance clínico de la especialidad (mínimo 10 caracteres)..."
               value={description}
@@ -185,7 +192,9 @@ function SpecialtyCreatePage() {
             />
             <div className="flex items-center justify-between">
               {descriptionError ? (
-                <span className="text-xs text-red-600">{descriptionError}</span>
+                <span role="alert" className="text-xs text-red-600">
+                  {descriptionError}
+                </span>
               ) : (
                 <span className="text-[11px] text-med-text-muted">
                   Entre 10 y 100 caracteres.
