@@ -212,7 +212,7 @@ function DashboardLayout() {
               <span className="block font-bold text-sm text-med-primary-900">
                 Admin Portal
               </span>
-              <span className="block text-[10px] font-medium text-med-text-muted">
+              <span className="block text-[10px] font-medium text-med-text-sub">
                 Healthcare Management
               </span>
             </div>

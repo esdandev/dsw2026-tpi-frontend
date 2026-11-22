@@ -74,7 +74,7 @@ function BookingConfirmCard({
         {hasSelectedSlot && selectedSlotStart ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-med-border rounded-xl border border-med-border bg-med-primary-50/40">
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Especialidad
               </p>
               <p className="text-xs font-semibold text-med-primary-900 truncate">
@@ -82,7 +82,7 @@ function BookingConfirmCard({
               </p>
             </div>
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Profesional
               </p>
               <p className="text-xs font-semibold text-med-primary-900 truncate">
@@ -90,7 +90,7 @@ function BookingConfirmCard({
               </p>
             </div>
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Fecha
               </p>
               <p className="text-xs font-semibold text-med-primary-900">
@@ -98,7 +98,7 @@ function BookingConfirmCard({
               </p>
             </div>
             <div className="px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-muted">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-med-text-sub">
                 Hora
               </p>
               <p className="text-xs font-semibold text-med-primary-900">
