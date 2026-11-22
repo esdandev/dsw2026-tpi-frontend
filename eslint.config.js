@@ -26,36 +26,11 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-      semi: ['error', 'always'],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      // El formato lo define Prettier (.prettierrc): no repetir reglas de estilo acá,
-      // la regla indent entraba en conflicto y el fix quedaba en ciclo.
-      // regla para usar comillas simples
-      quotes: ['error', 'single', { avoidEscape: true }],
-      // regla para el uso de punto y coma al final de las líneas
-      'semi-style': ['error', 'last'],
-      // regla para el uso de comas finales en objetos y arrays
-      'comma-dangle': [
-        'error',
-        {
-          arrays: 'always-multiline',
-          objects: 'always-multiline',
-          imports: 'always-multiline',
-          exports: 'always-multiline',
-          functions: 'never',
-        },
-      ],
-      // regla para el espacio antes y después de los corchetes en objetos y arrays
-      'object-curly-spacing': ['error', 'always'],
-      // regla para el espacio antes y después de los paréntesis en funciones
-      'space-before-function-paren': [
-        'error',
-        { anonymous: 'always', named: 'never', asyncArrow: 'always' },
-      ],
-      // regla para el uso de espacios en blanco
-      'no-trailing-spaces': 'error',
-      // regla para el uso de líneas en blanco
+      // El formato lo define Prettier (.prettierrc) a través de prettier/prettier:
+      // no repetir acá reglas de estilo (indent, quotes, semi, etc.) porque entran en conflicto.
+      // Sólo queda lo que Prettier no maneja: líneas en blanco entre statements.
       'padding-line-between-statements': [
         'error',
         { blankLine: 'always', prev: '*', next: 'return' },
@@ -68,18 +43,6 @@ export default defineConfig([
         { blankLine: 'always', prev: '*', next: 'if' },
         { blankLine: 'always', prev: 'if', next: '*' },
       ],
-      // regla para el uso de espacios en operadores
-      'space-infix-ops': 'error',
-      // regla para el uso de espacios en declaraciones de bloques
-      'block-spacing': ['error', 'always'],
-      // regla para el uso de espacios en declaraciones de bloques
-      'keyword-spacing': ['error', { before: true, after: true }],
-      // regla para el uso de espacios en declaraciones de bloques
-      'space-before-blocks': ['error', 'always'],
-      // regla para agregar un espacio despues de las comas
-      'comma-spacing': ['error', { before: false, after: true }],
-      // regla para no tener más de un renglon vacío
-      'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0, maxBOF: 0 }],
       'prettier/prettier': ['error', {}, { usePrettierrc: true }],
     },
   },
