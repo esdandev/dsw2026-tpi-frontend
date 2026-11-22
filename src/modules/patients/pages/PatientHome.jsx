@@ -7,11 +7,8 @@ import {
   readSession,
 } from '../../auth/services/sessionStorage';
 import BookingConfirmCard from '../components/BookingConfirmCard';
-import {
-  getDoctorInitials,
-  getDoctorName,
-  useBookingFlow,
-} from '../hooks/useBookingFlow';
+import { useBookingFlow } from '../hooks/useBookingFlow';
+import { getDoctorInitials, getDoctorName } from '../../doctors/helpers/doctor';
 import SlotSelector from '../components/SlotSelector';
 
 function PatientHome() {

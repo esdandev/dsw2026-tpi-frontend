@@ -1,32 +1,13 @@
 import AsyncState from '../../shared/components/AsyncState';
+import { addDays, formatDateAR } from '../../shared/helpers/dateArgentina';
 import {
-  formatDateAR,
-  formatTimeAR,
-  toApiDateFilter,
-} from '../../shared/helpers/dateArgentina';
+  getSlotDateKey,
+  getSlotId,
+  getSlotTimeLabel,
+  isSlotAvailable,
+} from '../../availabilities/helpers/slot';
 
 const DAY_LABELS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE'];
-
-function addDays(yyyyMmDd, days) {
-  const [y, m, d] = yyyyMmDd.split('-').map(Number);
-  const utc = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
-
-  return toApiDateFilter(utc);
-}
-
-function getSlotId(slot) {
-  return slot.availabilitySlotId ?? slot.id;
-}
-
-function isSlotAvailable(slot) {
-  if (typeof slot.isAvailable === 'boolean') return slot.isAvailable;
-
-  if (typeof slot.available === 'boolean') return slot.available;
-
-  if (slot.status) return slot.status.toUpperCase() === 'AVAILABLE';
-
-  return true;
-}
 
 function SlotSelector({
   weekStart,
@@ -56,27 +37,6 @@ function SlotSelector({
 
   const weekEnd = weekDays[4].dateKey;
   const availableSlots = slots.filter(isSlotAvailable);
-
-  function getSlotDateKey(slot) {
-    if (slot.date) return toApiDateFilter(slot.date);
-
-    const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
-
-    return toApiDateFilter(raw);
-  }
-
-  function getSlotTimeLabel(slot) {
-    if (
-      typeof slot.startTime === 'string' &&
-      /^\d{2}:\d{2}/.test(slot.startTime)
-    ) {
-      return slot.startTime.slice(0, 5);
-    }
-
-    const raw = slot.startAt || slot.dateTime || slot.start || slot.startTime;
-
-    return formatTimeAR(raw);
-  }
 
   const slotsByDate = weekDays.reduce((acc, day) => {
     acc[day.dateKey] = availableSlots

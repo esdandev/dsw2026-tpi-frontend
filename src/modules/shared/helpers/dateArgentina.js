@@ -68,6 +68,37 @@ export function formatDateTimeAR(utcInput) {
   }).format(date);
 }
 
+export function addDays(yyyyMmDd, days) {
+  const [y, m, d] = yyyyMmDd.split('-').map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+
+  return toApiDateFilter(utc);
+}
+
+export function getCurrentMondayAR() {
+  const todayStr = toApiDateFilter(new Date());
+  const [y, m, d] = todayStr.split('-').map(Number);
+  const utcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: ARGENTINA_TIMEZONE,
+    weekday: 'short',
+  }).format(utcNoon);
+
+  const offsetMap = {
+    Mon: 0,
+    Tue: -1,
+    Wed: -2,
+    Thu: -3,
+    Fri: -4,
+    Sat: 2,
+    Sun: 1,
+  };
+
+  const diff = offsetMap[weekday] ?? 0;
+
+  return toApiDateFilter(new Date(Date.UTC(y, m - 1, d + diff, 12, 0, 0)));
+}
+
 export function toApiDateFilter(input) {
   if (!input) return '';
 

@@ -15,18 +15,7 @@ import {
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 import StatusPill from '../../shared/components/StatusPill';
 import { getAppointmentStatusDisplay } from '../../shared/helpers/appointmentStatus';
-
-function getDoctorDisplayName(appt) {
-  const doc = appt.doctor;
-
-  return (
-    appt.doctorName ||
-    doc?.fullName ||
-    doc?.name ||
-    [doc?.firstName, doc?.lastName].filter(Boolean).join(' ') ||
-    'Profesional asignado'
-  );
-}
+import { getDoctorDisplayName } from '../../doctors/helpers/doctor';
 
 function AppointmentsPage() {
   const navigate = useNavigate();

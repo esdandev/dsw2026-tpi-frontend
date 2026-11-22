@@ -5,68 +5,18 @@ import { parseBackendError } from '../../shared/helpers/backendError';
 import { useDoctorSlots } from '../../availabilities/hooks/useAvailabilities';
 import { usePatientAppointments } from '../../appointments/hooks/useAppointments';
 import {
-  ARGENTINA_TIMEZONE,
+  addDays,
   formatDateAR,
-  formatTimeAR,
-  toApiDateFilter,
+  getCurrentMondayAR,
 } from '../../shared/helpers/dateArgentina';
+import {
+  getSlotDateKey,
+  getSlotStart,
+  getSlotTimeLabel,
+} from '../../availabilities/helpers/slot';
+import { getDoctorName } from '../../doctors/helpers/doctor';
 
 const MAX_WEEK_OFFSET = 3;
-
-function getCurrentMondayAR() {
-  const todayStr = toApiDateFilter(new Date());
-  const [y, m, d] = todayStr.split('-').map(Number);
-  const utcNoon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
-  const weekday = new Intl.DateTimeFormat('en-US', {
-    timeZone: ARGENTINA_TIMEZONE,
-    weekday: 'short',
-  }).format(utcNoon);
-
-  const offsetMap = {
-    Mon: 0,
-    Tue: -1,
-    Wed: -2,
-    Thu: -3,
-    Fri: -4,
-    Sat: 2,
-    Sun: 1,
-  };
-
-  const diff = offsetMap[weekday] ?? 0;
-  const mondayUtc = new Date(Date.UTC(y, m - 1, d + diff, 12, 0, 0));
-
-  return toApiDateFilter(mondayUtc);
-}
-
-function addDays(yyyyMmDd, days) {
-  const [y, m, d] = yyyyMmDd.split('-').map(Number);
-  const utc = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
-
-  return toApiDateFilter(utc);
-}
-
-export function getDoctorName(doc) {
-  if (!doc) return '';
-
-  return (
-    doc.fullName ||
-    doc.name ||
-    [doc.firstName, doc.lastName].filter(Boolean).join(' ') ||
-    [doc.user?.firstName, doc.user?.lastName].filter(Boolean).join(' ') ||
-    `Médico #${doc.id}`
-  );
-}
-
-export function getDoctorInitials(fullName) {
-  const clean = fullName.replace(/^dra?\.\s*/i, '').trim();
-  const parts = clean.split(/\s+/).filter(Boolean);
-
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-
-  return clean.slice(0, 2).toUpperCase() || 'DR';
-}
 
 export function useBookingFlow(patientDni) {
   const {
@@ -223,21 +173,9 @@ export function useBookingFlow(patientDni) {
     (doc) => String(doc.id) === String(selectedDoctorId)
   );
 
-  const selectedSlotStart =
-    selectedSlot?.startTime ||
-    selectedSlot?.startAt ||
-    selectedSlot?.dateTime ||
-    selectedSlot?.start;
-
-  const selectedSlotDateLabel = selectedSlot?.date
-    ? formatDateAR(selectedSlot.date)
-    : formatDateAR(selectedSlotStart);
-
-  const selectedSlotTimeLabel =
-    typeof selectedSlot?.startTime === 'string' &&
-    /^\d{2}:\d{2}/.test(selectedSlot.startTime)
-      ? selectedSlot.startTime.slice(0, 5)
-      : formatTimeAR(selectedSlotStart);
+  const selectedSlotStart = getSlotStart(selectedSlot);
+  const selectedSlotDateLabel = formatDateAR(getSlotDateKey(selectedSlot));
+  const selectedSlotTimeLabel = getSlotTimeLabel(selectedSlot);
 
   // Todo lo que necesita el resumen viaja junto: el que dibuja no recalcula nada.
   const slotSummary =
