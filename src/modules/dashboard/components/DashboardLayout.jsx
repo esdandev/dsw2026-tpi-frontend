@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import useAuth from '../../auth/hook/useAuth';
+import { ROLES } from '../../auth/constants';
 
 function DashboardLayout() {
   const [openMobileMenu, setOpenMobileMenu] = useState(false);
@@ -180,7 +181,7 @@ function DashboardLayout() {
                 {email || 'Administrador'}
               </p>
               <p className="text-[11px] text-med-text-muted truncate">
-                {role === 'ADMINISTRADOR' ? 'Administrador' : role || 'Sin rol'}
+                {role === ROLES.ADMIN ? 'Administrador' : role || 'Sin rol'}
               </p>
             </div>
           </div>

@@ -1,24 +1,27 @@
 import { createContext, useState } from 'react';
 import { loginAdmin } from '../services/adminLogin';
 import { loginPatient } from '../services/patientLogin';
+import { ROLES } from '../constants';
+import {
+  SESSION_FIELDS,
+  clearSession,
+  readSession,
+  saveSession,
+} from '../services/sessionStorage';
 
 const AuthContext = createContext();
 
 function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const token = localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(() =>
+    Boolean(readSession(SESSION_FIELDS.TOKEN))
+  );
 
-    return Boolean(token);
-  });
-
-  const [role, setRole] = useState(() => localStorage.getItem('role'));
-  const [email, setEmail] = useState(() => localStorage.getItem('email'));
-  const [dni, setDni] = useState(() => localStorage.getItem('dni'));
+  const [role, setRole] = useState(() => readSession(SESSION_FIELDS.ROLE));
+  const [email, setEmail] = useState(() => readSession(SESSION_FIELDS.EMAIL));
+  const [dni, setDni] = useState(() => readSession(SESSION_FIELDS.DNI));
 
   const singout = () => {
-    ['token', 'role', 'dni', 'email'].forEach((key) => {
-      localStorage.removeItem(key);
-    });
+    clearSession();
 
     setIsAuthenticated(false);
     setRole(null);
@@ -27,30 +30,18 @@ function AuthProvider({ children }) {
   };
 
   const setAuthSession = (token, userRole, userData = null) => {
-    localStorage.setItem('token', token);
-
-    if (userRole) {
-      localStorage.setItem('role', userRole);
-    }
+    saveSession(SESSION_FIELDS.TOKEN, token);
+    saveSession(SESSION_FIELDS.ROLE, userRole);
 
     const sessionEmail = userData?.email?.trim() || null;
 
     const sessionDni =
-      userRole === 'PACIENTE' && userData?.dni != null
+      userRole === ROLES.PATIENT && userData?.dni != null
         ? String(userData.dni)
         : null;
 
-    if (sessionEmail) {
-      localStorage.setItem('email', sessionEmail);
-    } else {
-      localStorage.removeItem('email');
-    }
-
-    if (sessionDni) {
-      localStorage.setItem('dni', sessionDni);
-    } else {
-      localStorage.removeItem('dni');
-    }
+    saveSession(SESSION_FIELDS.EMAIL, sessionEmail);
+    saveSession(SESSION_FIELDS.DNI, sessionDni);
 
     setRole(userRole || null);
     setEmail(sessionEmail);
@@ -65,7 +56,7 @@ function AuthProvider({ children }) {
       return { error };
     }
 
-    if (!data?.token || data.role !== 'ADMINISTRADOR') {
+    if (!data?.token || data.role !== ROLES.ADMIN) {
       return {
         error: {
           frontendErrorMessage:
@@ -91,7 +82,7 @@ function AuthProvider({ children }) {
       return { error };
     }
 
-    if (!data?.token || data.role !== 'PACIENTE') {
+    if (!data?.token || data.role !== ROLES.PATIENT) {
       return {
         error: {
           frontendErrorMessage:
