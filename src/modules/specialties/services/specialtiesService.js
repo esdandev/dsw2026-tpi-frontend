@@ -1,4 +1,5 @@
 import { instance as axiosInstance } from '../../shared/api/axiosInstance';
+import { getCached, invalidateByPrefix } from '../../shared/api/cache';
 
 export const specialtiesService = {
   async getAll({ pageIndex = 0, pageSize = 10, name = '' } = {}) {
@@ -6,9 +7,7 @@ export const specialtiesService = {
 
     if (name?.trim()) params.name = name.trim();
 
-    const { data } = await axiosInstance.get('/api/specialties', { params });
-
-    return data;
+    return getCached(axiosInstance, '/api/specialties', { params });
   },
 
   async getAllForSelect() {
@@ -32,18 +31,21 @@ export const specialtiesService = {
   },
 
   async create(payload) {
+    invalidateByPrefix('/api/specialties');
     const { data } = await axiosInstance.post('/api/specialties', payload);
 
     return data;
   },
 
   async update(id, payload) {
+    invalidateByPrefix('/api/specialties');
     const { data } = await axiosInstance.put(`/api/specialties/${id}`, payload);
 
     return data;
   },
 
   async remove(id) {
+    invalidateByPrefix('/api/specialties');
     await axiosInstance.delete(`/api/specialties/${id}`);
   },
 };
